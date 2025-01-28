@@ -1,0 +1,12 @@
+projects: 
+{
+  id: String
+  title: String,
+  description: String,
+  technologies: Array<String>,
+  image_url: String,
+  site_url: String || undefined,
+  source_code_url: String || undefined,
+  demo_url: String || undefined,
+  created_at: Timestamp Date,
+}

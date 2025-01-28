@@ -1,0 +1,135 @@
+openapi: 3.0.3
+info:
+  title: Personal API
+  description: API for managing personal data.
+  version: 1.0.0
+servers:
+  - url: https://{{host}}
+paths:
+  /auth/google:
+    get:
+      summary: Authenticate user via Google.
+      responses:
+        "200":
+          description: Redirect to Google authentication.
+
+  /projects:
+    get:
+      summary: Retrieve all projects.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of projects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+        "401":
+          description: Unauthorized.
+
+    post:
+      summary: Create a new project.
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                data:
+                  type: string
+                  description: JSON string of project data.
+      responses:
+        "201":
+          description: Project created successfully.
+        "400":
+          description: Bad request.
+        "401":
+          description: Unauthorized.
+
+  /projects/{projectId}:
+    put:
+      summary: Update a project by ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+      responses:
+        "200":
+          description: Project updated successfully.
+        "404":
+          description: Project not found.
+        "401":
+          description: Unauthorized.
+
+    delete:
+      summary: Delete a project by ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Project deleted successfully.
+        "404":
+          description: Project not found.
+        "401":
+          description: Unauthorized.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        image_url:
+          type: string
+        site_url:
+          type: string
+          nullable: true
+        source_code_url:
+          type: string
+          nullable: true
+        demo_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
