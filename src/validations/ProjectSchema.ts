@@ -3,7 +3,7 @@ import Joi from "joi";
 export const CreateProjectSchema = Joi.object({
 	title: Joi.string().min(1).max(25).required(),
 	description: Joi.string().min(10).max(200).required(),
-	technologies: Joi.array().items(Joi.string()).min(1).max(20).required(),
+	technologies: Joi.array().items(Joi.string().min(1).max(25)).min(1).max(20).required(),
 	site_url: Joi.string().allow(null, "").uri().optional(),
 	source_code_url: Joi.string().allow(null, "").uri().optional(),
 	demo_url: Joi.string().allow(null, "").uri().optional()
@@ -13,7 +13,7 @@ export const UpdateProjectSchema = Joi.object({
 	id: Joi.forbidden(),
 	title: Joi.string().min(1).max(25).optional(),
 	description: Joi.string().min(10).max(200).optional(),
-	technologies: Joi.array().items(Joi.string()).min(1).max(20).optional(),
+	technologies: Joi.array().items(Joi.string().min(1).max(25)).min(1).max(20).optional(),
 	site_url: Joi.string().allow(null, "").uri().optional(),
 	source_code_url: Joi.string().allow(null, "").uri().optional(),
 	demo_url: Joi.string().allow(null, "").uri().optional()

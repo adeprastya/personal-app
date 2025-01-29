@@ -1,0 +1,25 @@
+### Firestore
+
+users:
+{
+  id: String,
+  email: String,
+  name: String,
+}
+
+projects: 
+{
+  id: String
+  created_at: Timestamp Date,
+  image_url: String,
+  title: String (min 1, max 25),
+  description: String (min 10, max 200),
+  technologies: Array<String (min 1, max 25)> (min 1, max 20),
+  site_url: String (uri) | undefined,
+  source_code_url: String (uri) | undefined,
+  demo_url: String (uri) | undefined,
+}
+
+### Storage Bucket
+
+projects/ : This path is for storing project images, and the url is saved to Firestore.projects.image_url
