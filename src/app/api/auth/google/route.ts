@@ -1,11 +1,4 @@
-export async function POST() {
-	return new Response(
-		JSON.stringify({
-			success: true,
-			message: "Success POST"
-		}),
-		{
-			status: 200
-		}
-	);
-}
+import { NextResponse } from "next/server";
+import { oAuthUrl } from "@/config/GOAuth";
+
+export const GET = async () => NextResponse.redirect(oAuthUrl, 302);
