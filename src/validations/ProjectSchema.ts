@@ -10,7 +10,6 @@ export const CreateProjectSchema = Joi.object({
 });
 
 export const UpdateProjectSchema = Joi.object({
-	id: Joi.forbidden(),
 	title: Joi.string().min(1).max(25).optional(),
 	description: Joi.string().min(10).max(200).optional(),
 	technologies: Joi.array().items(Joi.string().min(1).max(25)).min(1).max(20).optional(),

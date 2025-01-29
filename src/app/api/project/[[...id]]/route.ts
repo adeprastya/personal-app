@@ -73,7 +73,7 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 
 export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) => {
 	try {
-		const id = (await params).id;
+		const id = (await params).id[0];
 		let reqBody = await req.text();
 
 		try {
@@ -82,13 +82,11 @@ export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) =
 			throw new CustomErrorResponse(400, "Data must be a valid JSON object", err);
 		}
 
-		const cleanBody = Object.fromEntries(Object.entries(reqBody).filter(([key]) => key !== "id"));
-
 		validate(IdSchema, id);
 		validate(UpdateProjectSchema, reqBody);
 
 		const data = {
-			...cleanBody
+			...(reqBody as Partial<Project>)
 		};
 
 		await ProjectCollection.update(id, data);
@@ -101,7 +99,7 @@ export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) =
 
 export const DELETE = ErrorHandler<Params>(async (req: NextRequest, { params }) => {
 	try {
-		const id = (await params).id;
+		const id = (await params).id[0];
 
 		validate(IdSchema, id);
 

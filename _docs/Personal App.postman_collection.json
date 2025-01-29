@@ -1,31 +1,13 @@
 {
 	"info": {
 		"_postman_id": "1d554bd7-93b1-4fc7-a7b1-ade28b1395a9",
-		"name": "Personal API",
+		"name": "Personal App",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37383188"
 	},
 	"item": [
 		{
-			"name": "Auth Login",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{host}}/auth/google",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"auth",
-						"google"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Project List",
+			"name": "Health Check",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -40,12 +22,59 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{host}}/projects",
+					"raw": "{{host}}/api",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
-						"projects"
+						"api"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth Login",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/api/auth/google",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"google"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Project Get All",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/api/project",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"project"
 					]
 				}
 			},
@@ -68,22 +97,23 @@
 						{
 							"key": "image",
 							"type": "file",
-							"src": "/C:/Users/adefa/Pictures/Screenshots/Screenshot 2025-01-18 220302.png"
+							"src": "c:\\Users\\adefa\\Pictures\\Screenshots\\Screenshot 2025-01-28 005247.png"
 						},
 						{
 							"key": "data",
-							"value": "{\n  \"title\": \"Title\",\n  \"description\": \"Description\",\n  \"technologies\": [\"asd\", \"asd\", \"asd\"],\n  \"site_url\": \"https://docid.com\",\n  \"source_code_url\": \"https://docid.com\",\n  \"demo_url\": \"https://docid.com\"\n}",
+							"value": "{  \"title\": \"TEST\",  \"description\": \"Description\",  \"technologies\": [\"Express\", \"React\", \"Tensorflow\", \"Firestore\", \"Compute Engine\", \"Google Cloud Storage\"],  \"site_url\": \"https://docid.com\",  \"source_code_url\": \"https://github.com/adeprastya/water-eye\",  \"demo_url\": \"https://youtu.be/46S1e3KE3hU\"}",
 							"type": "text"
 						}
 					]
 				},
 				"url": {
-					"raw": "{{host}}/projects",
+					"raw": "{{host}}/api/project",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
-						"projects"
+						"api",
+						"project"
 					]
 				}
 			},
@@ -92,7 +122,7 @@
 		{
 			"name": "Project Update",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [
 					{
 						"key": "Authorization",
@@ -102,7 +132,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"title\": \"Updated\"\r\n}",
+					"raw": "{\r\n    \"title\": \"___UPDATED___\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -110,12 +140,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{host}}/projects/{{projectId}}",
+					"raw": "{{host}}/api/project/{{projectId}}",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
-						"projects",
+						"api",
+						"project",
 						"{{projectId}}"
 					]
 				}
@@ -133,13 +164,23 @@
 						"type": "text"
 					}
 				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{host}}/projects/{{projectId}}",
+					"raw": "{{host}}/api/project/{{projectId}}",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
-						"projects",
+						"api",
+						"project",
 						"{{projectId}}"
 					]
 				}
@@ -174,6 +215,12 @@
 			"key": "host",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "host",
+			"value": "",
+			"type": "string",
+			"disabled": true
 		},
 		{
 			"key": "token",
