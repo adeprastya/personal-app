@@ -13,14 +13,16 @@ type Params = { params: Promise<{ id: string }> };
 
 export const GET = ErrorHandler(async () => {
 	try {
-		const result = await ProjectCollection.findAll();
+		const projects = await ProjectCollection.findAll();
 
-		const projects = result.map((project) => ({
-			...project,
-			created_at: timestampToReadable(project.created_at)
-		}));
+		const sortedProjects = projects
+			.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+			.map((project) => ({
+				...project,
+				created_at: timestampToReadable(project.created_at)
+			}));
 
-		return successResponse(200, "All projects retrieved successfully", projects);
+		return successResponse(200, "All projects retrieved successfully", sortedProjects);
 	} catch (err) {
 		throw new CustomErrorResponse(500, "Failed getting all projects", err);
 	}
@@ -29,15 +31,13 @@ export const GET = ErrorHandler(async () => {
 export const POST = ErrorHandler(async (req: NextRequest) => {
 	try {
 		const reqForm = await req.formData();
-		const reqFile = reqForm.get("image") as File;
+		const reqImage = reqForm.get("image") as File;
 		let reqData = reqForm.get("data") as string;
 
-		const fileToValidate = {
-			mimetype: reqFile.type,
-			size: reqFile.size
-		};
-
-		validate(ImageFileSchema, fileToValidate);
+		validate(ImageFileSchema, {
+			mimetype: reqImage?.type,
+			size: reqImage?.size
+		});
 
 		try {
 			reqData = JSON.parse(reqData);
@@ -51,16 +51,17 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 
 		validate(CreateProjectSchema, cleanData);
 
-		const buffer = Buffer.from(await reqFile.arrayBuffer());
-		const mimetype = reqFile.type;
-
 		const id = generateId();
-		const image_url = await CloudStorageInstance.storeFile(`projects/${id}`, { mimetype, buffer });
+		const image = {
+			mimetype: reqImage.type,
+			buffer: Buffer.from(await reqImage.arrayBuffer())
+		};
+		const image_url = await CloudStorageInstance.storeFile(`projects/${id}`, image);
 
 		const data = {
 			...(reqData as Partial<Project>),
-			id,
 			image_url,
+			id,
 			created_at: new Date().toISOString()
 		};
 		await ProjectCollection.create(data as Project);
@@ -85,11 +86,7 @@ export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) =
 		validate(IdSchema, id);
 		validate(UpdateProjectSchema, reqBody);
 
-		const data = {
-			...(reqBody as Partial<Project>)
-		};
-
-		await ProjectCollection.update(id, data);
+		await ProjectCollection.update(id, reqBody as Partial<Project>);
 
 		return successResponse(200, "Project updated successfully");
 	} catch (err) {
@@ -105,17 +102,13 @@ export const DELETE = ErrorHandler<Params>(async (req: NextRequest, { params }) 
 
 		const tempData = await ProjectCollection.findByField("id", "==", id);
 		if (!tempData) {
-			throw new CustomErrorResponse(500, "Project does not exist");
+			throw new CustomErrorResponse(404, "Project not found");
 		}
 
 		const image_url = tempData.image_url.split("/").slice(-1)[0];
 		await CloudStorageInstance.deleteFile(`projects/${image_url}`);
 
-		const isDeleted = await ProjectCollection.delete(id);
-
-		if (!isDeleted) {
-			throw new CustomErrorResponse(500, "Failed deleting project");
-		}
+		await ProjectCollection.delete(id);
 
 		return successResponse(200, "Project deleted successfully");
 	} catch (err) {

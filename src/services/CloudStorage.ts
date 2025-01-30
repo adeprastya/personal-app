@@ -1,4 +1,4 @@
-import { Storage } from "@google-cloud/storage";
+import { Bucket, Storage } from "@google-cloud/storage";
 import { GCP_projectId, GCP_bucketName, GCP_serviceAccountCredentials } from "@/config/GCP";
 import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
 
@@ -8,8 +8,12 @@ const storage = new Storage({
 });
 const bucket = storage.bucket(GCP_bucketName as string);
 
-class CloudStorage {
-	#bucket = bucket;
+export class CloudStorage {
+	readonly #bucket: Bucket;
+
+	constructor(bucket: Bucket) {
+		this.#bucket = bucket;
+	}
 
 	storeFile = async (path: string, { mimetype, buffer }: { mimetype: string; buffer: Buffer }): Promise<string> => {
 		try {
@@ -34,20 +38,18 @@ class CloudStorage {
 
 			return `https://storage.googleapis.com/${GCP_bucketName}/${fileName}`;
 		} catch (err) {
-			console.error(err);
 			throw new CustomErrorResponse(500, "Failed to upload file", err);
 		}
 	};
 
 	deleteFile = async (path: string) => {
 		try {
-			const file = bucket.file(path);
+			const file = this.#bucket.file(path);
 			await file.delete();
 		} catch (err) {
-			console.error(err);
 			throw new CustomErrorResponse(500, "Failed deleting image", err);
 		}
 	};
 }
 
-export const CloudStorageInstance = new CloudStorage();
+export const CloudStorageInstance = new CloudStorage(bucket);

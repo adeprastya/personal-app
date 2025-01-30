@@ -98,7 +98,7 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: Project deleted successfully.
         "401":
           description: Unauthorized.

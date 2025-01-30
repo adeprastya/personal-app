@@ -11,7 +11,6 @@ export const generateToken = (data: string | Buffer | object) => {
 		const token = jwt.sign(data, JWT_SECRET_KEY, { algorithm: "HS256", expiresIn: "1d" });
 		return token;
 	} catch (err) {
-		console.error(err);
 		throw new CustomErrorResponse(500, "Failed generating token", err);
 	}
 };
@@ -21,7 +20,6 @@ export const decodeToken = (token: string) => {
 		const payload = jwt.verify(token, JWT_SECRET_KEY);
 		return payload;
 	} catch (err) {
-		console.error(err);
 		throw new CustomErrorResponse(401, "Invalid or expired token", err);
 	}
 };

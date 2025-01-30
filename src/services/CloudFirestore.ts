@@ -29,8 +29,7 @@ export class FirestoreCollection<T extends { id: string }> {
 			const snapshot = await this.#collection.get();
 			return snapshot.docs.map((doc) => doc.data());
 		} catch (err) {
-			console.error(err);
-			throw new CustomErrorResponse(500, "Failed getting all documents", err);
+			throw new CustomErrorResponse(500, "Failed getting documents", err);
 		}
 	}
 
@@ -44,7 +43,6 @@ export class FirestoreCollection<T extends { id: string }> {
 			const firstDoc = snapshot.docs[0];
 			return firstDoc?.data() ?? null;
 		} catch (err) {
-			console.error(err);
 			throw new CustomErrorResponse(500, `Failed finding document`, err);
 		}
 	}
@@ -52,38 +50,43 @@ export class FirestoreCollection<T extends { id: string }> {
 	async create(data: T): Promise<string> {
 		try {
 			await this.#collection.doc(data.id).set(data);
+
 			return data.id;
 		} catch (err) {
-			console.error(err);
 			throw new CustomErrorResponse(500, "Failed creating document", err);
 		}
 	}
 
 	async update(id: string, data: Partial<T>): Promise<string> {
 		try {
-			await this.#collection.doc(id).update(data);
+			const docRef = this.#collection.doc(id);
+
+			const doc = await docRef.get();
+			if (!doc.exists) {
+				throw new CustomErrorResponse(404, `Document does not exist`);
+			}
+
+			await docRef.update(data);
+
 			return id;
 		} catch (err) {
-			console.error(err);
 			throw new CustomErrorResponse(500, `Failed updating document`, err);
 		}
 	}
 
-	async delete(id: string): Promise<boolean> {
+	async delete(id: string): Promise<string> {
 		try {
 			const docRef = this.#collection.doc(id);
-			const doc = await docRef.get();
 
+			const doc = await docRef.get();
 			if (!doc.exists) {
 				throw new CustomErrorResponse(404, `Document does not exist`);
 			}
 
 			await docRef.delete();
-			const deletedDoc = await docRef.get();
 
-			return !deletedDoc.exists;
+			return id;
 		} catch (err) {
-			console.error(err);
 			throw new CustomErrorResponse(500, `Failed deleting document`, err);
 		}
 	}
@@ -97,7 +100,6 @@ export class FirestoreCollection<T extends { id: string }> {
 
 				await docRef.delete();
 			} catch (err) {
-				console.error(err);
 				throw new CustomErrorResponse(500, `Error deleting document ${docRef.path}`, err);
 			}
 		};
@@ -108,7 +110,6 @@ export class FirestoreCollection<T extends { id: string }> {
 
 			await Promise.all(docs.map((doc) => deleteRecursive(doc)));
 		} catch (err) {
-			console.error(err);
 			throw new CustomErrorResponse(500, `Error deleting collection ${collectionPath}`, err);
 		}
 	};

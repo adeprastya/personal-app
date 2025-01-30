@@ -1,21 +1,30 @@
 export class CustomErrorResponse extends Error {
 	statusCode: number;
-	originalError?: Error | CustomErrorResponse;
+	inheritedError?: Error | CustomErrorResponse | unknown;
 
-	constructor(statusCode: number, message: string, originalError?: Error | CustomErrorResponse | unknown) {
+	constructor(statusCode: number, message: string, inheritedError?: Error | CustomErrorResponse | unknown) {
 		super(message);
 		this.name = this.constructor.name;
 
-		if (originalError instanceof CustomErrorResponse) {
-			this.originalError = originalError;
-			this.statusCode = originalError.statusCode;
-			this.message = originalError.message;
+		Object.setPrototypeOf(this, new.target.prototype);
+
+		if (inheritedError) {
+			this.inheritedError = inheritedError;
+
+			if (inheritedError instanceof CustomErrorResponse) {
+				this.statusCode = inheritedError.statusCode || statusCode;
+				this.message = inheritedError.message || message;
+			} else if (inheritedError instanceof Error) {
+				this.statusCode = statusCode;
+				this.message = message;
+			} else {
+				this.statusCode = statusCode;
+				this.message = message;
+			}
 		} else {
 			this.statusCode = statusCode;
 			this.message = message;
 		}
-
-		Object.setPrototypeOf(this, new.target.prototype);
 
 		if (Error.captureStackTrace) {
 			Error.captureStackTrace(this, this.constructor);
