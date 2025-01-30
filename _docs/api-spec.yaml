@@ -1,34 +1,34 @@
 openapi: 3.0.3
 info:
-  title: Personal API
+  title: Personal App
   description: API for managing personal data.
   version: 1.0.0
 servers:
   - url: https://{{host}}
+
 paths:
-  /auth/google:
+  /api:
+    get:
+      summary: Health checks.
+      responses:
+        "200":
+          description: OK
+
+  /api/auth/google:
     get:
       summary: Authenticate user via Google.
       responses:
         "200":
           description: Redirect to Google authentication.
 
-  /projects:
+  /api/project:
     get:
       summary: Retrieve all projects.
-      security:
-        - bearerAuth: []
       responses:
         "200":
           description: List of projects.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Project"
-        "401":
-          description: Unauthorized.
+        "500":
+          description: Internal server error.
 
     post:
       summary: Create a new project.
@@ -53,9 +53,11 @@ paths:
           description: Bad request.
         "401":
           description: Unauthorized.
+        "500":
+          description: Internal server error.
 
-  /projects/{projectId}:
-    put:
+  /api/project/{projectId}:
+    patch:
       summary: Update a project by ID.
       security:
         - bearerAuth: []
@@ -76,10 +78,14 @@ paths:
       responses:
         "200":
           description: Project updated successfully.
-        "404":
-          description: Project not found.
+        "400":
+          description: Bad request.
         "401":
           description: Unauthorized.
+        "404":
+          description: Project not found.
+        "500":
+          description: Internal server error.
 
     delete:
       summary: Delete a project by ID.
@@ -94,10 +100,12 @@ paths:
       responses:
         "204":
           description: Project deleted successfully.
-        "404":
-          description: Project not found.
         "401":
           description: Unauthorized.
+        "404":
+          description: Project not found.
+        "500":
+          description: Internal server error.
 
 components:
   securitySchemes:
