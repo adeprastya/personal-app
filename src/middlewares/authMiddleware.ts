@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
 import { decodeToken } from "@/utils/token";
 
-const authMiddleware = async (req: NextRequest) => {
+export const AuthMiddleware = async (req: NextRequest): Promise<NextResponse> => {
 	try {
-		const authorization = req.headers.get("authorization");
+		const authorization: string | null = req.headers.get("authorization");
 
 		if (!authorization) {
 			throw new CustomErrorResponse(400, "Authorization header is missing");
@@ -18,8 +18,6 @@ const authMiddleware = async (req: NextRequest) => {
 
 		return NextResponse.next();
 	} catch (err) {
-		return NextResponse.next(err as NextResponse);
+		throw new CustomErrorResponse(401, "Unauthorized", err);
 	}
 };
-
-export default authMiddleware;

@@ -33,7 +33,7 @@ export const GET = async (req: NextRequest) => {
 			return user;
 		});
 
-		const token = generateToken(user);
+		const token = await generateToken(user);
 
 		return NextResponse.redirect(GOAUTH_REDIRECT_FE_URL + `?success=true&message=Login successful&token=${token}`, 302);
 	} catch (err) {

@@ -13,10 +13,6 @@ export function ErrorHandler<P>(handler: (req: NextRequest, params: P) => Promis
 				return errorResponse(err.statusCode, err.message);
 			}
 
-			if (err instanceof Error) {
-				return errorResponse(500, err.message);
-			}
-
 			return errorResponse(500, "Internal server error");
 		}
 	};
