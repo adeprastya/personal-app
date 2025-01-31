@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 import ContextProvider from "@/contexts/ContextProvider";
 
 export const metadata: Metadata = {
-	title: "Personal App",
+	title: "Personal App | Project",
 	description: "Ade Prastya's Personal App"
 };
 
-export default function RootLayout({
+export default function ProjectLayout({
 	children
 }: Readonly<{
 	children: React.ReactNode;
