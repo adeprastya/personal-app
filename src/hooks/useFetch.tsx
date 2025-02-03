@@ -1,17 +1,10 @@
+"use client";
+
 import type { AxiosError, AxiosRequestConfig } from "axios";
 import axios from "axios";
 import { useState, useEffect } from "react";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
-if (!BACKEND_URL) {
-	throw new Error("Env variable BACKEND_URL is not defined");
-}
-
-export default function useFetch<T = unknown>(
-	method: AxiosRequestConfig["method"],
-	url: AxiosRequestConfig["url"],
-	options: AxiosRequestConfig = {}
-) {
+export default function useFetch<T>(config: AxiosRequestConfig) {
 	const [data, setData] = useState<T | null>(null);
 	const [error, setError] = useState<AxiosError | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -23,11 +16,7 @@ export default function useFetch<T = unknown>(
 			setLoading(true);
 
 			try {
-				const res = await axios({
-					method,
-					url: BACKEND_URL + url,
-					...options
-				});
+				const res = await axios(config);
 				setData(res.data);
 			} catch (err) {
 				setError(err as AxiosError);
@@ -37,34 +26,26 @@ export default function useFetch<T = unknown>(
 		};
 
 		fetch();
-		// eslint-disable-next-line
-	}, [method, url]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return { data, error, loading };
 }
 
-export const axiosFetch = async (
-	method: AxiosRequestConfig["method"],
-	url: AxiosRequestConfig["url"],
-	options: AxiosRequestConfig = {}
-) => {
+export async function axiosFetch<T>(config: AxiosRequestConfig) {
 	const result = {
-		result: null as unknown,
+		result: null as T | null,
 		error: null as AxiosError | null
 	};
 
 	try {
 		console.log("__useFetch__ axiosFetch Running...");
 
-		const res = await axios({
-			method,
-			url: BACKEND_URL + url,
-			...options
-		});
+		const res = await axios(config);
 
 		result.result = res.data;
 	} catch (err) {
 		result.error = err as AxiosError;
 	}
 	return result;
-};
+}

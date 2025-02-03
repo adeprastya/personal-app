@@ -1,7 +1,7 @@
-export type SuccessResponse = {
+export type SuccessResponse<T> = {
 	status: boolean;
 	message: string;
-	data?: Array<object>;
+	data?: T;
 };
 
 export type ErrorResponse = {

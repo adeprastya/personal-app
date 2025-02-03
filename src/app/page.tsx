@@ -17,7 +17,7 @@ export default async function LandingPage() {
 			<form
 				action={async () => {
 					"use server";
-					await signIn("google", { redirectTo: "/home" });
+					await signIn("google", { redirectTo: "/project" });
 				}}
 			>
 				<button type="submit" className={sty.button}>

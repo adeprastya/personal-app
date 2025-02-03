@@ -1,8 +1,9 @@
 import type { Project } from "@/types/Project";
 import Image from "next/image";
+import { axiosFetch } from "@/hooks/useFetch";
 
 const sty = {
-	container: "aspect-[5/2] p-4 border border-neutral-200 rounded-2xl shadow-sm flex flex-col gap-6",
+	container: "relative aspect-[5/2] p-4 border border-neutral-200 rounded-2xl shadow-sm flex flex-col gap-6",
 
 	image: "aspect-video object-cover border border-neutral-200 rounded-lg",
 
@@ -18,6 +19,24 @@ const sty = {
 };
 
 export default function ProjectCard({ project }: { project: Project }) {
+	const handleDelete = async () => {
+		if (confirm("Are you sure you want to delete this project?")) {
+			const { result, error } = await axiosFetch({
+				method: "DELETE",
+				url: process.env.NEXT_PUBLIC_BACKEND_URL + `/project/${project.id}`
+			});
+
+			if (error) {
+				console.error(error?.response?.data);
+				return;
+			}
+
+			if (result) {
+				window.location.reload();
+			}
+		}
+	};
+
 	return (
 		<div className={sty.container}>
 			{/* Image */}
@@ -65,6 +84,14 @@ export default function ProjectCard({ project }: { project: Project }) {
 					)}
 				</div>
 			</div>
+
+			<button
+				type="button"
+				onClick={handleDelete}
+				className="absolute bottom-2 right-2 px-2 rounded-md bg-red-500 text-white flex items-center justify-center cursor-pointer"
+			>
+				Delete
+			</button>
 		</div>
 	);
 }

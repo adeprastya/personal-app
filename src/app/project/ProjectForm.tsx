@@ -1,3 +1,5 @@
+"use client";
+
 import type { Project } from "@/types/Project";
 import { useRef, useState } from "react";
 import InputField from "../../components/shared/InputField";
@@ -42,8 +44,12 @@ export default function ProjectForm() {
 		formData.append("image", imagePayload || "");
 		formData.append("data", reqPayload);
 
-		const { result, error } = await axiosFetch("POST", "/api/project", {
-			headers: { "Content-Type": "multipart/form-data" },
+		const { result, error } = await axiosFetch({
+			method: "POST",
+			url: process.env.NEXT_PUBLIC_BACKEND_URL + "/project",
+			headers: {
+				"Content-Type": "multipart/form-data"
+			},
 			data: formData
 		});
 
@@ -53,7 +59,6 @@ export default function ProjectForm() {
 		}
 
 		if (result) {
-			console.log(result);
 			window.location.reload();
 		}
 	};

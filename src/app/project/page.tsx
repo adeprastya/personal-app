@@ -4,6 +4,7 @@ import type { Project } from "@/types/Project";
 import ProjectForm from "./ProjectForm";
 import ProjectCard from "./ProjectCard";
 import useFetch from "@/hooks/useFetch";
+import { SuccessResponse } from "@/types/ApiResponse";
 
 const sty = {
 	container: "w-full min-h-dvh p-8 flex flex-col gap-8",
@@ -13,8 +14,11 @@ const sty = {
 	cardWrap: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
 };
 
-export default function Project() {
-	const { data, error, loading } = useFetch<{ data: Array<Project> }>("GET", "/project");
+export default function ProjectPage() {
+	const { data, loading, error } = useFetch<SuccessResponse<Project[]>>({
+		method: "GET",
+		url: process.env.NEXT_PUBLIC_BACKEND_URL + "/project"
+	});
 
 	return (
 		<main className={sty.container}>
@@ -24,12 +28,12 @@ export default function Project() {
 
 			{loading && <p>Loading...</p>}
 
-			{error && <p>{error.message}</p>}
+			{error && <p>{`${error}`}</p>}
 
 			<div className={sty.cardWrap}>
 				{Array.isArray(data?.data) &&
-					data?.data.map((project) => {
-						return <ProjectCard key={project.id} project={project} />;
+					data.data.map((p) => {
+						return <ProjectCard key={p.id} project={p} />;
 					})}
 			</div>
 		</main>
