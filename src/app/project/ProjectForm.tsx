@@ -2,7 +2,6 @@ import type { Project } from "@/types/Project";
 import { useRef, useState } from "react";
 import InputField from "../../components/shared/InputField";
 import { axiosFetch } from "../../hooks/useFetch";
-import { useAuth } from "../../contexts/useAuth";
 
 const sty = {
 	input: "w-full h-8 border border-neutral-600 rounded-md focus:outline-neutral-600",
@@ -25,8 +24,6 @@ const projectPayload: Omit<Project, "id" | "created_at" | "image_url"> = {
 };
 
 export default function ProjectForm() {
-	const { auth } = useAuth();
-
 	const [payload, setPayload] = useState(projectPayload);
 	const [imagePayload, setImagePayload] = useState<File | null>(null);
 
@@ -46,7 +43,7 @@ export default function ProjectForm() {
 		formData.append("data", reqPayload);
 
 		const { result, error } = await axiosFetch("POST", "/api/project", {
-			headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${auth}` },
+			headers: { "Content-Type": "multipart/form-data" },
 			data: formData
 		});
 
