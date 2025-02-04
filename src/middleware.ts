@@ -2,33 +2,50 @@ import { auth } from "@/config/nextAuth";
 import { errorResponse } from "./utils/response";
 import { NextResponse } from "next/server";
 
-const publicPage: string[] = ["/"];
+const internalApi: Record<string, string[]> = {
+	"/api/user": ["POST"]
+};
 const publicApi: Record<string, string[]> = {
 	"/api": ["GET"],
 	"/api/project": ["GET"]
 };
-
+const publicPage: string[] = ["/"];
 const staticAssetsPattern =
 	/^\/_next\/static\/|^\/_next\/image\/|^\/_next\/fonts\/|^\/favicon.ico|^\/robots.txt|^\/manifest.json/;
 
 export default auth(async (req) => {
+	const pathname = req.nextUrl.pathname;
+	const method = req.method;
+
 	// Static Assets
-	if (staticAssetsPattern.test(req.nextUrl.pathname)) {
+	if (staticAssetsPattern.test(pathname)) {
 		return NextResponse.next();
 	}
 
 	// Public Page
-	if (publicPage.includes(req.nextUrl.pathname)) {
+	if (publicPage.includes(pathname)) {
 		return NextResponse.next();
 	}
 
 	// Public API
-	const allowedMethods = publicApi[req.nextUrl.pathname];
-	if (allowedMethods && allowedMethods.includes(req.method)) {
+	const publicApiMethods = publicApi[pathname];
+	if (publicApiMethods && publicApiMethods.includes(method)) {
 		return NextResponse.next();
 	}
 
-	if (!(await auth())) {
+	// Internal API
+	const internalApiMethods = internalApi[pathname];
+	if (internalApiMethods && internalApiMethods.includes(method)) {
+		return NextResponse.next();
+	}
+
+	// next-auth
+	if (pathname.startsWith("/api/auth")) {
+		return NextResponse.next();
+	}
+
+	const isAuth = await auth();
+	if (!isAuth) {
 		return errorResponse(401, "Unauthorized or Unauthenticated");
 	}
 

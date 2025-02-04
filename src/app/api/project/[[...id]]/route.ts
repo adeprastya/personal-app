@@ -11,6 +11,7 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 
 type Params = { params: Promise<{ id: string }> };
 
+// PUBLIC API
 export const GET = ErrorHandler(async () => {
 	try {
 		const projects = await ProjectCollection.findAll();
@@ -28,6 +29,7 @@ export const GET = ErrorHandler(async () => {
 	}
 });
 
+// PROTECTED API
 export const POST = ErrorHandler(async (req: NextRequest) => {
 	try {
 		const reqForm = await req.formData();
@@ -72,6 +74,7 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 	}
 });
 
+// PROTECTED API
 export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) => {
 	try {
 		const id = (await params).id[0];
@@ -94,6 +97,7 @@ export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) =
 	}
 });
 
+// PROTECTED API
 export const DELETE = ErrorHandler<Params>(async (req: NextRequest, { params }) => {
 	try {
 		const id = (await params).id[0];
