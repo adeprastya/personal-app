@@ -70,7 +70,7 @@ function ProjectRow({ project, refetch }: { project: Project; refetch: () => voi
 			<td className="px-4 py-2">
 				<Link
 					href={`/project/${project.id}`}
-					className="tracking-wide font-semibold text-base underline underline-offset-2"
+					className="tracking-wide font-normal text-base underline underline-offset-2"
 				>
 					{project.title}
 				</Link>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 const state = {
 	DEFAULT: "DEFAULT",
@@ -41,10 +41,6 @@ export default function TextareaField({
 		onChange(e);
 		setIsFilled(e.target.value !== "");
 	};
-
-	useEffect(() => {
-		console.log("Current state:", currentState, "isFilled:", isFilled);
-	}, [currentState, isFilled]);
 
 	return (
 		<label htmlFor={name} className="relative">

@@ -2,16 +2,10 @@
 
 import type { Project } from "@/types/Project";
 import { useRef, useState } from "react";
-import InputField from "../../components/shared/InputField";
-import TextareaField from "../../components/shared/TextareaField";
-import { axiosFetch } from "../../hooks/useFetch";
-
-const sty = {
-	button:
-		"cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-white bg-neutral-900 hover:bg-neutral-700 focus:bg-neutral-700 focus:outline-2 focus:outline-neutral-900 transition-all",
-	buttonGhost:
-		"cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-neutral-950 bg-neutral-100 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-2 focus:outline-neutral-300 transition-all"
-};
+import InputField from "@/components/shared/InputField";
+import TextareaField from "@/components/shared/TextareaField";
+import ImageInputField from "@/components/shared/ImageInputField";
+import { axiosFetch } from "@/hooks/useFetch";
 
 const projectPayload: Omit<Project, "id" | "created_at" | "image_url"> = {
 	title: "",
@@ -98,11 +92,13 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 	};
 
 	return (
-		<div className="w-full lg:w-10/12 border border-neutral-200 rounded-lg shadow-sm">
+		<div className="w-full lg:w-10/12 border border-neutral-400 rounded-sm overflow-clip">
 			{/* Expand Button */}
 			<button
 				type="button"
-				className="cursor-pointer w-full py-1 px-4 bg-neutral-100 font-semibold text-xl text-neutral-800 flex justify-between"
+				className={`cursor-pointer w-full py-2 px-4 font-medium tracking-wide text-neutral-800 flex justify-between ${
+					expandedForm ? "border-b border-neutral-400" : "border-b-0"
+				}`}
 				onClick={() => setExpandedForm((p) => !p)}
 			>
 				<span>Add New Project</span>
@@ -115,7 +111,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 				className="px-4 transition-all duration-300 overflow-clip"
 				style={{ height: expandedForm ? `${formRef.current?.scrollHeight}px` : "0" }}
 			>
-				<div className="w-full pt-4 flex flex-col md:grid md:grid-cols-2 md:grid-rows-1 gap-6">
+				<div className="w-full pt-6 flex flex-col md:grid md:grid-cols-2 md:grid-rows-1 gap-6">
 					<div className="flex flex-col gap-6">
 						<InputField
 							label="Title"
@@ -164,36 +160,22 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 						<InputField label="Demo URL" name="demo_url" placeholder="https://example.com" onChange={handleChange} />
 					</div>
 
-					<div>
-						<label htmlFor="image" className="">
-							Image
-						</label>
-						<div
-							className="aspect-video"
-							style={{
-								backgroundImage: imagePayload
-									? `url(${URL.createObjectURL(imagePayload)})`
-									: "linear-gradient(to top right, oklch(0.985 0 0), oklch(0.985 0 0), oklch(0.922 0 0), oklch(0.985 0 0))",
-								backgroundSize: "cover",
-								backgroundPosition: "center"
-							}}
-						>
-							<input
-								id="image"
-								type="file"
-								onChange={handleImageChange}
-								className="cursor-pointer size-full border border-neutral-600 rounded-md focus:outline-neutral-600 hover:outline-neutral-600"
-							/>
-						</div>
-					</div>
+					<ImageInputField label="Image" name="image" preview={imagePayload} onChange={handleImageChange} />
 				</div>
 
 				<div className="pb-4 pt-6 flex gap-6">
-					<button type="submit" className={sty.button}>
+					<button
+						type="submit"
+						className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-white bg-neutral-900 hover:bg-neutral-700 focus:bg-neutral-700 focus:outline-2 focus:outline-neutral-900 transition-all"
+					>
 						Submit
 					</button>
 
-					<button type="reset" className={sty.buttonGhost} onClick={handleReset} title="Clear">
+					<button
+						type="reset"
+						onClick={handleReset}
+						className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-neutral-950 bg-neutral-100 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-2 focus:outline-neutral-300 transition-all"
+					>
 						Clear
 					</button>
 				</div>
