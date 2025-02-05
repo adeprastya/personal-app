@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+:root {
+	@apply text-neutral-800 bg-neutral-100;
+}

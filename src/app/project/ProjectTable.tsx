@@ -1,13 +1,18 @@
 import type { Project } from "@/types/Project";
+import { ErrorResponse } from "@/types/ApiResponse";
 import Image from "next/image";
-import { axiosFetch } from "@/hooks/useFetch";
 import Link from "next/link";
+import { axiosFetch } from "@/hooks/useFetch";
 
 export default function ProjectTable({
 	projects,
+	loading,
+	error,
 	refetch
 }: {
 	projects: Array<Project> | undefined;
+	loading: boolean;
+	error: ErrorResponse | null;
 	refetch: () => void;
 }) {
 	return (
@@ -24,6 +29,16 @@ export default function ProjectTable({
 				</thead>
 
 				<tbody className="divide-y divide-neutral-400">
+					{loading && <ProjectSkeleton />}
+
+					{error && (
+						<tr>
+							<td colSpan={5} className="px-8 py-4 text-center text-lg text-neutral-600">
+								Error, {error.message}
+							</td>
+						</tr>
+					)}
+
 					{Array.isArray(projects) &&
 						projects.map((p) => {
 							return <ProjectRow key={p.id} project={p} refetch={refetch} />;
@@ -128,6 +143,37 @@ function ProjectRow({ project, refetch }: { project: Project; refetch: () => voi
 				>
 					Delete
 				</button>
+			</td>
+		</tr>
+	);
+}
+
+function ProjectSkeleton() {
+	return (
+		<tr>
+			{/* Image */}
+			<td className="px-4 py-2">
+				<div className="w-30 aspect-video rounded-lg bg-neutral-300 animate-pulse" />
+			</td>
+
+			{/* Title */}
+			<td className="px-4 py-2">
+				<div className="w-30 h-5 rounded-lg bg-neutral-300 animate-pulse" />
+			</td>
+
+			{/* Created */}
+			<td className="px-4 py-2">
+				<div className="w-30 h-5 rounded-lg bg-neutral-300 animate-pulse" />
+			</td>
+
+			{/* URL */}
+			<td className="px-4 py-2">
+				<div className="w-50 h-5 rounded-lg bg-neutral-300 animate-pulse" />
+			</td>
+
+			{/* Action */}
+			<td className="px-4 py-2">
+				<div className="w-10 h-5 rounded-lg bg-neutral-300 animate-pulse" />
 			</td>
 		</tr>
 	);

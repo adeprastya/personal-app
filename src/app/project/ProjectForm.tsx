@@ -96,7 +96,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 			{/* Expand Button */}
 			<button
 				type="button"
-				className={`cursor-pointer w-full py-2 px-4 font-medium tracking-wide text-neutral-800 flex justify-between ${
+				className={`cursor-pointer w-full py-2 px-4 font-medium tracking-wide flex justify-between ${
 					expandedForm ? "border-b border-neutral-400" : "border-b-0"
 				}`}
 				onClick={() => setExpandedForm((p) => !p)}
