@@ -18,21 +18,21 @@ const sty = {
 	link: "text-sky-600 hover:underline"
 };
 
-export default function ProjectCard({ project }: { project: Project }) {
+export default function ProjectCard({ project, refetch }: { project: Project; refetch: () => void }) {
 	const handleDelete = async () => {
 		if (confirm("Are you sure you want to delete this project?")) {
-			const { result, error } = await axiosFetch({
+			const { data, error } = await axiosFetch({
 				method: "DELETE",
 				url: process.env.NEXT_PUBLIC_BACKEND_URL + `/project/${project.id}`
 			});
 
 			if (error) {
-				console.error(error?.response?.data);
+				console.error(error);
 				return;
 			}
 
-			if (result) {
-				window.location.reload();
+			if (data) {
+				refetch();
 			}
 		}
 	};

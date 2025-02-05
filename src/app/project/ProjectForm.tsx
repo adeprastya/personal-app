@@ -25,7 +25,7 @@ const projectPayload: Omit<Project, "id" | "created_at" | "image_url"> = {
 	demo_url: ""
 };
 
-export default function ProjectForm() {
+export default function ProjectForm({ refetch }: { refetch: () => void }) {
 	const [payload, setPayload] = useState(projectPayload);
 	const [imagePayload, setImagePayload] = useState<File | null>(null);
 
@@ -44,7 +44,7 @@ export default function ProjectForm() {
 		formData.append("image", imagePayload || "");
 		formData.append("data", reqPayload);
 
-		const { result, error } = await axiosFetch({
+		const { data, error } = await axiosFetch({
 			method: "POST",
 			url: process.env.NEXT_PUBLIC_BACKEND_URL + "/project",
 			headers: {
@@ -54,12 +54,13 @@ export default function ProjectForm() {
 		});
 
 		if (error) {
-			console.error(error?.response?.data);
+			console.error(error);
 			return;
 		}
 
-		if (result) {
-			window.location.reload();
+		if (data) {
+			refetch();
+			handleReset();
 		}
 	};
 

@@ -15,7 +15,7 @@ const sty = {
 };
 
 export default function ProjectPage() {
-	const { data, loading, error } = useFetch<SuccessResponse<Project[]>>({
+	const { data, loading, error, refetch } = useFetch<SuccessResponse<Project[]>>({
 		method: "GET",
 		url: process.env.NEXT_PUBLIC_BACKEND_URL + "/project"
 	});
@@ -24,16 +24,16 @@ export default function ProjectPage() {
 		<main className={sty.container}>
 			<h1 className={sty.h1}>Project</h1>
 
-			<ProjectForm />
+			<ProjectForm refetch={refetch} />
 
 			{loading && <p>Loading...</p>}
 
-			{error && <p>{`${error}`}</p>}
+			{error && <p>{error.message}</p>}
 
 			<div className={sty.cardWrap}>
 				{Array.isArray(data?.data) &&
 					data.data.map((p) => {
-						return <ProjectCard key={p.id} project={p} />;
+						return <ProjectCard key={p.id} project={p} refetch={refetch} />;
 					})}
 			</div>
 		</main>
