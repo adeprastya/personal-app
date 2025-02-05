@@ -3,13 +3,10 @@
 import type { Project } from "@/types/Project";
 import { useRef, useState } from "react";
 import InputField from "../../components/shared/InputField";
+import TextareaField from "../../components/shared/TextareaField";
 import { axiosFetch } from "../../hooks/useFetch";
 
 const sty = {
-	input: "w-full h-8 border border-neutral-600 rounded-md focus:outline-neutral-600",
-	tech: "leading-none mb-2",
-	inputTech: "w-30 h-8 border border-neutral-600 rounded-md focus:outline-neutral-600",
-
 	button:
 		"cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-white bg-neutral-900 hover:bg-neutral-700 focus:bg-neutral-700 focus:outline-2 focus:outline-neutral-900 transition-all",
 	buttonGhost:
@@ -120,19 +117,25 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 			>
 				<div className="w-full pt-4 flex flex-col md:grid md:grid-cols-2 md:grid-rows-1 gap-6">
 					<div className="flex flex-col gap-6">
-						<InputField label="Title" name="title" required onChange={handleChange} className={sty.input} />
-
 						<InputField
+							label="Title"
+							name="title"
+							placeholder="Your Project Title..."
+							required
+							onChange={handleChange}
+						/>
+
+						<TextareaField
 							label="Description"
 							name="description"
+							placeholder="Describe your project..."
 							type="textarea"
 							required
 							onChange={handleChange}
-							className={sty.input}
 						/>
 
 						<div>
-							<p className={sty.tech}>Technologies</p>
+							<p className="-translate-y-2 font-normal text-sm text-neutral-600">Technologies</p>
 
 							<div className="flex flex-wrap gap-2">
 								{payload.technologies.map((tech, i) => (
@@ -140,20 +143,25 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 										key={i}
 										label={`Tech ${i + 1}`}
 										name={`tech_${i}`}
+										placeholder="Tech used..."
 										required={i == 0}
 										onChange={(e) => handleTechChange(e, i)}
 										value={tech}
-										className={`${sty.inputTech} ${i !== 0 && tech === "" ? "opacity-40" : ""}`}
 									/>
 								))}
 							</div>
 						</div>
 
-						<InputField label="Site URL" name="site_url" onChange={handleChange} className={sty.input} />
+						<InputField label="Site URL" name="site_url" placeholder="https://example.com" onChange={handleChange} />
 
-						<InputField label="Source Code URL" name="source_code_url" onChange={handleChange} className={sty.input} />
+						<InputField
+							label="Source Code URL"
+							name="source_code_url"
+							placeholder="https://github.com"
+							onChange={handleChange}
+						/>
 
-						<InputField label="Demo URL" name="demo_url" onChange={handleChange} className={sty.input} />
+						<InputField label="Demo URL" name="demo_url" placeholder="https://example.com" onChange={handleChange} />
 					</div>
 
 					<div>
