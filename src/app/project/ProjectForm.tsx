@@ -5,7 +5,7 @@ import InputField from "@/components/shared/InputField";
 import TextareaField from "@/components/shared/TextareaField";
 import ImageInputField from "@/components/shared/ImageInputField";
 import { axiosFetch } from "@/hooks/useFetch";
-import { Formik, Form } from "formik";
+import { Formik, Form, FieldArray } from "formik";
 import { validate } from "@/validations/formikValidate";
 import { CreateProjectSchema } from "@/validations/ProjectSchema";
 import { filterEmptyArrayIndex, filterEmptyObjectFields } from "@/utils/helper";
@@ -114,25 +114,39 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 								{/* Technologies */}
 								<div>
 									<p className="-translate-y-2 font-normal text-sm text-neutral-600">Technologies</p>
+
 									<div className="flex flex-wrap gap-2">
-										{values.technologies.map((tech, i) => (
-											<InputField
-												key={i}
-												label={`Tech ${i + 1}`}
-												name={`technologies[${i}]`}
-												placeholder="Tech used..."
-												required={i == 0}
-												value={tech}
-												onChange={(e) => {
-													const newTechs = [...values.technologies];
-													newTechs[i] = e.target.value;
-													if (e.target.value.trim() && i === newTechs.length - 1) {
-														newTechs.push("");
-													}
-													setFieldValue("technologies", newTechs);
-												}}
-											/>
-										))}
+										<FieldArray
+											name="technologies"
+											render={(arrayHelpers) =>
+												values.technologies &&
+												values.technologies.map((tech, i) => (
+													<div key={i} className="flex items-center gap-1">
+														<InputField
+															label={`Tech ${i + 1}`}
+															name={`technologies.${i}`}
+															placeholder="Tech used..."
+															required={i == 0}
+															value={tech}
+															onChange={(e) => {
+																handleChange(e);
+																if (e.target.value.trim() !== "" && values.technologies[i + 1] == undefined) {
+																	arrayHelpers.insert(i + 1, "");
+																}
+															}}
+														/>
+														<button
+															type="button"
+															disabled={values.technologies.length === 1}
+															onClick={() => arrayHelpers.remove(i)}
+															className="h-5/6 aspect-square rounded-md border border-red-500 text-red-500 flex items-center justify-center cursor-pointer"
+														>
+															X
+														</button>
+													</div>
+												))
+											}
+										/>
 									</div>
 								</div>
 
