@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Field, ErrorMessage } from "formik";
 
 const state = {
 	DEFAULT: "DEFAULT",
@@ -27,14 +28,11 @@ export default function TextareaField({
 	const [isFilled, setIsFilled] = useState(false);
 	const ref = useRef<HTMLTextAreaElement>(null);
 
-	const handleFocus = () => {
-		setCurrentState(state.FOCUSED);
-	};
+	const handleFocus = () => setCurrentState(state.FOCUSED);
 
 	const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-		const value = e.target.value;
-		setIsFilled(value !== "");
 		setCurrentState(state.DEFAULT);
+		setIsFilled(e.target.value !== "");
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -42,23 +40,35 @@ export default function TextareaField({
 		setIsFilled(e.target.value !== "");
 	};
 
+	const getBorderClass = () => {
+		switch (currentState) {
+			case state.DEFAULT:
+				return isFilled ? "border-blue-500" : "border-neutral-400";
+			case state.FOCUSED:
+				return isFilled ? "border-blue-500" : "border-neutral-950";
+			case state.WARNING:
+				return "border-yellow-500";
+			case state.ERROR:
+				return "border-red-500";
+			default:
+				return "";
+		}
+	};
+
 	return (
 		<label htmlFor={name} className="relative">
-			<textarea
+			{/* Input */}
+			<Field
 				ref={ref}
-				rows={3}
+				as="textarea"
+				rows={4}
 				id={name}
 				name={name}
 				required={required}
 				onChange={handleChange}
 				onFocus={handleFocus}
 				onBlur={handleBlur}
-				className={`transition-colors outline-none w-full px-3 py-1 rounded-sm border border-solid
-          ${currentState === state.DEFAULT ? (isFilled ? "border-blue-500" : "border-neutral-400") : ""}
-          ${currentState === state.FOCUSED ? (isFilled ? "border-blue-500" : "border-neutral-950") : ""}
-          ${currentState === state.WARNING ? "border-yellow-500" : ""}
-          ${currentState === state.ERROR ? "border-red-500" : ""} 
-        `}
+				className={`transition-colors outline-none w-full px-3 py-1 rounded-sm border border-solid ${getBorderClass()}`}
 				{...props}
 			/>
 
@@ -72,17 +82,24 @@ export default function TextareaField({
 					}`}
 			>
 				{label}
-				{required && <span className="ml-1 font-bold text-red-400">*</span>}
+				{required && " *"}
 			</span>
 
 			{/* Placeholder */}
 			<span
 				className={`transition-all absolute left-3 top-0 translate-y-2/5 font-normal leading-none text-base text-neutral-500
-          ${isFilled ? "opacity-0" : currentState === state.FOCUSED ? "opacity-100" : "opacity-0"}
+          ${isFilled ? "hidden" : currentState === state.FOCUSED ? "visible" : "hidden"}
         `}
 			>
 				{placeholder}
 			</span>
+
+			{/* Error */}
+			<ErrorMessage
+				name={name}
+				component="p"
+				className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs"
+			/>
 		</label>
 	);
 }

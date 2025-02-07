@@ -18,3 +18,22 @@ export const timestampToReadable = (
 		...options
 	});
 };
+
+export const filterEmptyObjectFields = (obj: object) => {
+	return Object.entries(obj).reduce((acc, [key, value]) => {
+		if (value) {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			acc[key] = value;
+		}
+		return acc;
+	}, {});
+};
+
+export const filterEmptyArrayIndex = (arr: Array<unknown>) => {
+	return arr.filter((item) => {
+		if (item !== null || item !== undefined || item !== "") {
+			return item;
+		}
+	});
+};

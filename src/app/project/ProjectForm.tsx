@@ -1,185 +1,201 @@
 "use client";
 
-import type { Project } from "@/types/Project";
-import { useRef, useState } from "react";
+import { useState, useRef } from "react";
 import InputField from "@/components/shared/InputField";
 import TextareaField from "@/components/shared/TextareaField";
 import ImageInputField from "@/components/shared/ImageInputField";
 import { axiosFetch } from "@/hooks/useFetch";
+import { Formik, Form } from "formik";
+import { validate } from "@/validations/formikValidate";
+import { CreateProjectSchema } from "@/validations/ProjectSchema";
+import { filterEmptyArrayIndex, filterEmptyObjectFields } from "@/utils/helper";
+import { Project } from "@/types/Project";
 
-const projectPayload: Omit<Project, "id" | "created_at" | "image_url"> = {
+type ProjectPayload = Omit<Project, "id" | "created_at" | "image_url"> & { image: File | null };
+
+const FORM_INIT: ProjectPayload = {
 	title: "",
 	description: "",
 	technologies: [""],
 	site_url: "",
 	source_code_url: "",
-	demo_url: ""
+	demo_url: "",
+	image: null
 };
 
 export default function ProjectForm({ refetch }: { refetch: () => void }) {
-	const [payload, setPayload] = useState(projectPayload);
-	const [imagePayload, setImagePayload] = useState<File | null>(null);
-
 	const formRef = useRef<HTMLFormElement>(null);
 	const [expandedForm, setExpandedForm] = useState(false);
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const handleValidate = (data: Partial<ProjectPayload>) => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { image, technologies, ...rest } = data;
+		const clearTech = filterEmptyArrayIndex(technologies as string[]);
+		const clearData = filterEmptyObjectFields({ ...rest, technologies: clearTech });
 
-		const reqPayload = JSON.stringify({
-			...payload,
-			technologies: payload.technologies.filter((tech) => tech.trim() !== "")
-		});
+		return validate(CreateProjectSchema, clearData);
+	};
+
+	const handleSubmit = async (
+		values: Partial<ProjectPayload>,
+		{ setSubmitting, resetForm }: { setSubmitting: (a: boolean) => void; resetForm: () => void }
+	) => {
+		const { image, technologies, ...rest } = values;
+		const clearTech = filterEmptyArrayIndex(technologies as string[]);
+		const clearData = filterEmptyObjectFields({ ...rest, technologies: clearTech });
 
 		const formData = new FormData();
-		formData.append("image", imagePayload || "");
-		formData.append("data", reqPayload);
+		formData.append("image", image as File);
+		formData.append("data", JSON.stringify(clearData));
 
 		const { data, error } = await axiosFetch({
 			method: "POST",
-			url: process.env.NEXT_PUBLIC_BACKEND_URL + "/project",
-			headers: {
-				"Content-Type": "multipart/form-data"
-			},
+			url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project`,
+			headers: { "Content-Type": "multipart/form-data" },
 			data: formData
 		});
 
 		if (error) {
 			console.error(error);
-			return;
 		}
 
 		if (data) {
 			refetch();
-			handleReset();
+			resetForm();
 		}
-	};
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-		setPayload((p) => ({ ...p, [e.target.name]: e.target.value }));
-	};
-
-	const handleTechChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
-		const value = e.target.value;
-
-		setPayload((p) => {
-			const updatedTechnologies = [...p.technologies];
-			updatedTechnologies[index] = value;
-
-			if (value.trim() && index === updatedTechnologies.length - 1) {
-				updatedTechnologies.push("");
-			}
-
-			return { ...p, technologies: updatedTechnologies };
-		});
-	};
-
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			const reader = new FileReader();
-			reader.onload = () => {
-				setImagePayload(file);
-			};
-			reader.readAsDataURL(file);
-		}
-	};
-
-	const handleReset = () => {
-		formRef.current?.reset();
-		setPayload(projectPayload);
-		setImagePayload(null);
+		setSubmitting(false);
 	};
 
 	return (
-		<div className="w-full lg:w-10/12 border border-neutral-400 rounded-sm overflow-clip">
-			{/* Expand Button */}
+		<div className="w-full lg:w-10/12 border border-neutral-600 rounded-sm overflow-clip">
+			{/* Expand/Collapse Button */}
 			<button
 				type="button"
 				className={`cursor-pointer w-full py-2 px-4 font-medium tracking-wide flex justify-between ${
-					expandedForm ? "border-b border-neutral-400" : "border-b-0"
+					expandedForm ? "border-b border-neutral-600" : "border-b-0"
 				}`}
-				onClick={() => setExpandedForm((p) => !p)}
+				onClick={() => setExpandedForm((prev) => !prev)}
 			>
 				<span>Add New Project</span>
 				<span>{expandedForm ? "/\\" : "\\/"}</span>
 			</button>
 
-			<form
-				onSubmit={handleSubmit}
-				ref={formRef}
-				className="px-4 transition-all duration-300 overflow-clip"
-				style={{ height: expandedForm ? `${formRef.current?.scrollHeight}px` : "0" }}
-			>
-				<div className="w-full pt-6 flex flex-col md:grid md:grid-cols-2 md:grid-rows-1 gap-6">
-					<div className="flex flex-col gap-6">
-						<InputField
-							label="Title"
-							name="title"
-							placeholder="Your Project Title..."
-							required
-							onChange={handleChange}
-						/>
+			{/* Formik Form */}
+			<Formik initialValues={FORM_INIT} validate={handleValidate} onSubmit={handleSubmit}>
+				{({ values, handleChange, setFieldValue, resetForm, isSubmitting }) => (
+					<Form
+						ref={formRef}
+						style={{ height: expandedForm ? `${formRef.current?.scrollHeight}px` : "0" }}
+						className="px-4 transition-all duration-300 overflow-clip"
+					>
+						<div className="w-full pt-6 flex flex-col md:grid md:grid-cols-2 gap-6">
+							<div className="flex flex-col gap-6">
+								{/* Title Field */}
+								<InputField
+									label="Title"
+									name="title"
+									placeholder="Your Project Title..."
+									required
+									value={values.title}
+									onChange={handleChange}
+								/>
 
-						<TextareaField
-							label="Description"
-							name="description"
-							placeholder="Describe your project..."
-							type="textarea"
-							required
-							onChange={handleChange}
-						/>
+								{/* Description Field */}
+								<TextareaField
+									label="Description"
+									name="description"
+									placeholder="Describe your project..."
+									required
+									value={values.description}
+									onChange={handleChange}
+								/>
 
-						<div>
-							<p className="-translate-y-2 font-normal text-sm text-neutral-600">Technologies</p>
+								{/* Technologies */}
+								<div>
+									<p className="-translate-y-2 font-normal text-sm text-neutral-600">Technologies</p>
+									<div className="flex flex-wrap gap-2">
+										{values.technologies.map((tech, i) => (
+											<InputField
+												key={i}
+												label={`Tech ${i + 1}`}
+												name={`technologies[${i}]`}
+												placeholder="Tech used..."
+												required={i == 0}
+												value={tech}
+												onChange={(e) => {
+													const newTechs = [...values.technologies];
+													newTechs[i] = e.target.value;
+													if (e.target.value.trim() && i === newTechs.length - 1) {
+														newTechs.push("");
+													}
+													setFieldValue("technologies", newTechs);
+												}}
+											/>
+										))}
+									</div>
+								</div>
 
-							<div className="flex flex-wrap gap-2">
-								{payload.technologies.map((tech, i) => (
-									<InputField
-										key={i}
-										label={`Tech ${i + 1}`}
-										name={`tech_${i}`}
-										placeholder="Tech used..."
-										required={i == 0}
-										onChange={(e) => handleTechChange(e, i)}
-										value={tech}
-									/>
-								))}
+								{/* Site URL */}
+								<InputField
+									label="Site URL"
+									name="site_url"
+									placeholder="https://example.com"
+									value={values.site_url as string | undefined}
+									onChange={handleChange}
+								/>
+
+								{/* Source Code URL */}
+								<InputField
+									label="Source Code URL"
+									name="source_code_url"
+									placeholder="https://github.com"
+									value={values.source_code_url as string | undefined}
+									onChange={handleChange}
+								/>
+
+								{/* Demo URL */}
+								<InputField
+									label="Demo URL"
+									name="demo_url"
+									placeholder="https://example.com"
+									value={values.demo_url as string | undefined}
+									onChange={handleChange}
+								/>
 							</div>
+
+							{/* Image Upload */}
+							<ImageInputField
+								label="Image"
+								name="image"
+								preview={values.image}
+								onChange={(e) => setFieldValue("image", e.target.files?.[0] || null)}
+							/>
 						</div>
 
-						<InputField label="Site URL" name="site_url" placeholder="https://example.com" onChange={handleChange} />
+						{/* Submit & Reset Buttons */}
+						<div className="pb-4 pt-6 flex gap-6">
+							{/* Submit */}
+							<button
+								type="submit"
+								disabled={isSubmitting}
+								className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-white bg-neutral-900 hover:bg-neutral-700 focus:bg-neutral-700 focus:outline-2 focus:outline-neutral-900 transition-all"
+							>
+								{isSubmitting ? "Submitting..." : "Submit"}
+							</button>
 
-						<InputField
-							label="Source Code URL"
-							name="source_code_url"
-							placeholder="https://github.com"
-							onChange={handleChange}
-						/>
-
-						<InputField label="Demo URL" name="demo_url" placeholder="https://example.com" onChange={handleChange} />
-					</div>
-
-					<ImageInputField label="Image" name="image" preview={imagePayload} onChange={handleImageChange} />
-				</div>
-
-				<div className="pb-4 pt-6 flex gap-6">
-					<button
-						type="submit"
-						className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-white bg-neutral-900 hover:bg-neutral-700 focus:bg-neutral-700 focus:outline-2 focus:outline-neutral-900 transition-all"
-					>
-						Submit
-					</button>
-
-					<button
-						type="reset"
-						onClick={handleReset}
-						className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-neutral-950 bg-neutral-100 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-2 focus:outline-neutral-300 transition-all"
-					>
-						Clear
-					</button>
-				</div>
-			</form>
+							{/* Reset */}
+							<button
+								type="reset"
+								onClick={() => resetForm()}
+								className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-neutral-950 bg-neutral-100 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-2 focus:outline-neutral-300 transition-all"
+							>
+								Clear
+							</button>
+						</div>
+					</Form>
+				)}
+			</Formik>
 		</div>
 	);
 }

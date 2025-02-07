@@ -16,9 +16,9 @@ export default function ProjectTable({
 	refetch: () => void;
 }) {
 	return (
-		<div className="overflow-x-auto border border-neutral-400 rounded-sm">
+		<div className="overflow-x-auto border border-neutral-600 rounded-sm">
 			<table className="min-w-full">
-				<thead className="border-b border-neutral-400 tracking-wider font-semibold text-left text-sm">
+				<thead className="border-b border-neutral-600 tracking-wider font-semibold text-left text-sm">
 					<tr>
 						<td className="px-4 py-2">Image</td>
 						<td className="px-4 py-2">Title</td>

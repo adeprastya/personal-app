@@ -12,36 +12,35 @@ type InputState = (typeof state)[keyof typeof state];
 type ImageInputFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 	label: string | number;
 	name: string;
-	preview: File | null;
+	preview: File | string | null;
 	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 export default function ImageInputField({ label, name, preview, onChange, ...props }: ImageInputFieldProps) {
+	const ref = useRef<HTMLInputElement>(null);
 	const [currentState, setCurrentState] = useState<InputState>(state.DEFAULT);
 	const [isFilled, setIsFilled] = useState(false);
 	const [previewURL, setPreviewURL] = useState<string | null>(null);
-	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
-		if (preview) {
+		if (preview instanceof File) {
 			const url = URL.createObjectURL(preview);
 			setPreviewURL(url);
 			return () => {
 				URL.revokeObjectURL(url);
 			};
+		} else if (typeof preview === "string") {
+			setPreviewURL(preview);
 		} else {
 			setPreviewURL(null);
 		}
 	}, [preview]);
 
-	const handleFocus = () => {
-		setCurrentState(state.FOCUSED);
-	};
+	const handleFocus = () => setCurrentState(state.FOCUSED);
 
 	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-		const value = e.target.value;
-		setIsFilled(value !== "");
 		setCurrentState(state.DEFAULT);
+		setIsFilled(e.target.value !== "");
 	};
 
 	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,6 +81,38 @@ export default function ImageInputField({ label, name, preview, onChange, ...pro
 		setCurrentState(state.DEFAULT);
 	};
 
+	const handleCLick = (e: React.MouseEvent<HTMLInputElement>) => {
+		if (previewURL) {
+			e.preventDefault();
+			if (ref.current) {
+				ref.current.value = "";
+			}
+			setPreviewURL(null);
+			setIsFilled(false);
+
+			const emptyFileList = new DataTransfer().files;
+			const removalEvent = {
+				target: { name, files: emptyFileList }
+			} as React.ChangeEvent<HTMLInputElement>;
+			onChange(removalEvent);
+		}
+	};
+
+	const getBorderClass = () => {
+		switch (currentState) {
+			case state.DEFAULT:
+				return isFilled ? "border-blue-500" : "border-neutral-400";
+			case state.FOCUSED:
+				return isFilled ? "border-blue-500" : "border-neutral-950";
+			case state.WARNING:
+				return "border-yellow-500";
+			case state.ERROR:
+				return "border-red-500";
+			default:
+				return "";
+		}
+	};
+
 	return (
 		<div className="space-y-1">
 			{/* Label */}
@@ -91,19 +122,14 @@ export default function ImageInputField({ label, name, preview, onChange, ...pro
 
 			{/* Container Preview */}
 			<div
-				className={`overflow-hidden relative aspect-video rounded-sm border 
-          ${currentState === state.DEFAULT ? (isFilled ? "border-blue-500" : "border-neutral-400") : ""}
-          ${currentState === state.FOCUSED ? (isFilled ? "border-blue-500" : "border-neutral-950") : ""}
-          ${currentState === state.WARNING ? "border-yellow-500" : ""}
-          ${currentState === state.ERROR ? "border-red-500" : ""}
-        `}
-				style={{
-					background: previewURL ? "none" : "linear-gradient(to top right, oklch(0.999 0 0), oklch(0.950 0 0))"
-				}}
 				onDragOver={handleDragOver}
 				onDragEnter={handleDragEnter}
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
+				style={{
+					background: previewURL ? "none" : "linear-gradient(to top right, oklch(0.999 0 0), oklch(0.950 0 0))"
+				}}
+				className={`overflow-hidden relative aspect-video rounded-sm border ${getBorderClass()}`}
 			>
 				{/* Image Preview */}
 				{previewURL && (
@@ -118,20 +144,22 @@ export default function ImageInputField({ label, name, preview, onChange, ...pro
 
 				{/* Input File */}
 				<input
-					ref={inputRef}
+					ref={ref}
 					id={name}
 					name={name}
 					type="file"
 					accept="image/*"
 					onChange={handleImageChange}
+					onClick={handleCLick}
 					onFocus={handleFocus}
 					onBlur={handleBlur}
 					className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
 					{...props}
 				/>
 
-				<span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400">
-					Select Image or Drag n Drop
+				{/* Text */}
+				<span className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400">
+					{previewURL ? "Click to remove" : "Select Image or Drag n Drop"}
 				</span>
 			</div>
 		</div>

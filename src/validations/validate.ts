@@ -1,4 +1,4 @@
-import Joi from "joi";
+import type Joi from "joi";
 import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
 
 export const validate = (schema: Joi.Schema, data: unknown) => {
