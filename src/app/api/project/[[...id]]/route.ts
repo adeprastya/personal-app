@@ -12,8 +12,23 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 type Params = { params: Promise<{ id: string }> };
 
 // PUBLIC API
-export const GET = ErrorHandler(async () => {
+export const GET = ErrorHandler(async (req: NextRequest, { params }: Params) => {
 	try {
+		const param = await params;
+
+		if (param.id) {
+			const id = param.id[0];
+
+			validate(IdSchema, id);
+
+			const project = await ProjectCollection.findByField("id", "==", id);
+			if (!project) {
+				throw new CustomErrorResponse(404, "Project not found");
+			}
+
+			return successResponse(200, "Project retrieved successfully", project);
+		}
+
 		const projects = await ProjectCollection.findAll();
 
 		const sortedProjects = projects
@@ -25,7 +40,7 @@ export const GET = ErrorHandler(async () => {
 
 		return successResponse(200, "All projects retrieved successfully", sortedProjects);
 	} catch (err) {
-		throw new CustomErrorResponse(500, "Failed getting all projects", err);
+		throw new CustomErrorResponse(500, "Failed getting projects", err);
 	}
 });
 
@@ -75,7 +90,7 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 });
 
 // PROTECTED API
-export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) => {
+export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) => {
 	try {
 		const id = (await params).id[0];
 		let reqBody = await req.text();
@@ -98,7 +113,7 @@ export const PATCH = ErrorHandler<Params>(async (req: NextRequest, { params }) =
 });
 
 // PROTECTED API
-export const DELETE = ErrorHandler<Params>(async (req: NextRequest, { params }) => {
+export const DELETE = ErrorHandler(async (req: NextRequest, { params }: Params) => {
 	try {
 		const id = (await params).id[0];
 
