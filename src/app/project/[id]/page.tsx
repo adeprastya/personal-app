@@ -6,6 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import useFetch, { axiosFetch } from "@/hooks/useFetch";
 import { timestampToReadable } from "@/utils/helper";
+import { UpdateProjectSchema } from "@/validations/ProjectSchema";
+import { validate } from "@/validations/validate";
 
 export default function ProjectDetailPage() {
 	const { id } = useParams();
@@ -15,21 +17,30 @@ export default function ProjectDetailPage() {
 	});
 	const project = data?.data;
 
+	const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
+		e.currentTarget.dataset.oldValue = e.currentTarget.textContent?.trim() ?? "";
+	};
+
 	const handleUpdate = async (e: React.FocusEvent<HTMLElement>, field: string) => {
-		if (e.target.textContent == "" || e.target.textContent == project?.[field as keyof Project]) {
-			return;
+		const newValue = e.currentTarget.textContent?.trim() ?? "";
+		const oldValue = e.currentTarget.dataset.oldValue || newValue;
+
+		try {
+			validate(UpdateProjectSchema, { [field]: newValue });
+
+			const { data } = await axiosFetch({
+				method: "PATCH",
+				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				data: { [field]: newValue }
+			});
+
+			console.log("Update success:", data);
+			e.currentTarget.dataset.oldValue = newValue;
+			refetch();
+		} catch (err) {
+			console.error(err);
+			e.currentTarget.textContent = oldValue;
 		}
-
-		const { data, error } = await axiosFetch({
-			method: "PATCH",
-			url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
-			data: { [field]: e.target.textContent }
-		});
-
-		if (error) return console.error(error);
-
-		console.log(data);
-		refetch();
 	};
 
 	return (
@@ -53,6 +64,7 @@ export default function ProjectDetailPage() {
 							contentEditable
 							suppressContentEditableWarning
 							spellCheck={false}
+							onFocus={handleFocus}
 							onBlur={(e) => handleUpdate(e, "title")}
 							title={project?.id}
 							className="font-semibold text-4xl"
@@ -73,6 +85,7 @@ export default function ProjectDetailPage() {
 						contentEditable
 						suppressContentEditableWarning
 						spellCheck={false}
+						onFocus={handleFocus}
 						onBlur={(e) => handleUpdate(e, "description")}
 						className="block max-w-3xl text-base"
 					>
@@ -87,6 +100,7 @@ export default function ProjectDetailPage() {
 									contentEditable
 									suppressContentEditableWarning
 									spellCheck={false}
+									onFocus={handleFocus}
 									onBlur={(e) => handleUpdate(e, "site_url")}
 									className="text-sm"
 								>
@@ -109,6 +123,7 @@ export default function ProjectDetailPage() {
 									contentEditable
 									suppressContentEditableWarning
 									spellCheck={false}
+									onFocus={handleFocus}
 									onBlur={(e) => handleUpdate(e, "source_code_url")}
 									className="text-sm"
 								>
@@ -131,6 +146,7 @@ export default function ProjectDetailPage() {
 									contentEditable
 									suppressContentEditableWarning
 									spellCheck={false}
+									onFocus={handleFocus}
 									onBlur={(e) => handleUpdate(e, "demo_url")}
 									className="text-sm"
 								>
