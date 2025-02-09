@@ -1,54 +1,46 @@
 import { useRef, useState } from "react";
-import { Field, ErrorMessage } from "formik";
+import { useField } from "formik";
 
-const state = {
+const STATE = {
 	DEFAULT: "DEFAULT",
 	FOCUSED: "FOCUSED",
 	WARNING: "WARNING",
 	ERROR: "ERROR"
 } as const;
-type FieldState = (typeof state)[keyof typeof state];
-
+type FieldState = (typeof STATE)[keyof typeof STATE];
 type FieldProps = React.InputHTMLAttributes<HTMLTextAreaElement> & {
 	label: string | number;
-	name: string;
-	placeholder?: string;
-	onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 };
 
 export default function TextareaField({
 	name,
 	label,
-	onChange,
 	required = false,
-	placeholder = "",
+	placeholder = "Type Here",
 	...props
 }: FieldProps) {
-	const [currentState, setCurrentState] = useState<FieldState>(state.DEFAULT);
-	const [isFilled, setIsFilled] = useState(false);
+	const [field, meta] = useField(name);
 	const ref = useRef<HTMLTextAreaElement>(null);
+	const [currentState, setCurrentState] = useState<FieldState>(STATE.DEFAULT);
 
-	const handleFocus = () => setCurrentState(state.FOCUSED);
+	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => field.onChange(e);
+
+	const handleFocus = () => setCurrentState(STATE.FOCUSED);
 
 	const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-		setCurrentState(state.DEFAULT);
-		setIsFilled(e.target.value !== "");
-	};
-
-	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		onChange(e);
-		setIsFilled(e.target.value !== "");
+		setCurrentState(STATE.DEFAULT);
+		field.onBlur(e);
 	};
 
 	const getBorderClass = () => {
 		switch (currentState) {
-			case state.DEFAULT:
-				return isFilled ? "border-blue-500" : "border-neutral-400";
-			case state.FOCUSED:
-				return isFilled ? "border-blue-500" : "border-neutral-950";
-			case state.WARNING:
+			case STATE.DEFAULT:
+				return field.value ? "border-blue-500" : "border-neutral-400";
+			case STATE.FOCUSED:
+				return field.value ? "border-blue-500" : "border-neutral-950";
+			case STATE.WARNING:
 				return "border-yellow-500";
-			case state.ERROR:
+			case STATE.ERROR:
 				return "border-red-500";
 			default:
 				return "";
@@ -58,13 +50,13 @@ export default function TextareaField({
 	return (
 		<label htmlFor={name} className="relative">
 			{/* Input */}
-			<Field
+			<textarea
 				ref={ref}
-				as="textarea"
 				rows={4}
 				id={name}
 				name={name}
 				required={required}
+				value={field.value}
 				onChange={handleChange}
 				onFocus={handleFocus}
 				onBlur={handleBlur}
@@ -76,7 +68,7 @@ export default function TextareaField({
 			<span
 				className={`absolute px-1 left-2 transition-all leading-none bg-white
           ${
-						currentState === state.FOCUSED || isFilled
+						field.value || currentState === STATE.FOCUSED
 							? "top-0 -translate-y-3/5 font-semibold tracking-wider text-xs text-neutral-950"
 							: "top-0 translate-y-2/5 font-normal tracking-normal text-base text-neutral-700"
 					}`}
@@ -87,19 +79,17 @@ export default function TextareaField({
 
 			{/* Placeholder */}
 			<span
-				className={`transition-all absolute left-3 top-0 translate-y-2/5 font-normal leading-none text-base text-neutral-500
-          ${isFilled ? "hidden" : currentState === state.FOCUSED ? "visible" : "hidden"}
+				className={`transition-all absolute left-3 top-0 translate-y-2/5 font-normal leading-none text-base text-neutral-500 pointer-events-none
+          ${field.value || currentState !== STATE.FOCUSED ? "hidden" : "visible"}
         `}
 			>
 				{placeholder}
 			</span>
 
 			{/* Error */}
-			<ErrorMessage
-				name={name}
-				component="p"
-				className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs"
-			/>
+			{meta.touched && meta.error && (
+				<p className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs">{meta.error}</p>
+			)}
 		</label>
 	);
 }

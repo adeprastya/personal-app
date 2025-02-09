@@ -40,8 +40,6 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 		values: Partial<ProjectPayload>,
 		{ setSubmitting, resetForm }: { setSubmitting: (a: boolean) => void; resetForm: () => void }
 	) => {
-		console.log(values);
-
 		const { image, technologies, ...rest } = values;
 		const clearTech = filterEmptyArrayIndex(technologies as string[]);
 		const clearData = filterEmptyObjectFields({ ...rest, technologies: clearTech });
@@ -85,7 +83,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 
 			{/* Formik Form */}
 			<Formik initialValues={FORM_INIT} validate={handleValidate} onSubmit={handleSubmit}>
-				{({ values, handleChange, setFieldValue, resetForm, isSubmitting }) => (
+				{({ resetForm, isSubmitting }) => (
 					<Form
 						ref={formRef}
 						style={{ height: expandedForm ? `${formRef.current?.scrollHeight}px` : "0" }}
@@ -94,63 +92,26 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 						<div className="w-full pt-6 flex flex-col md:grid md:grid-cols-2 gap-6">
 							<div className="flex flex-col gap-6">
 								{/* Title Field */}
-								<InputField
-									label="Title"
-									name="title"
-									placeholder="Your Project Title..."
-									required
-									value={values.title}
-									onChange={handleChange}
-								/>
+								<InputField label="Title" name="title" placeholder="Your Project Title..." required />
 
 								{/* Description Field */}
-								<TextareaField
-									label="Description"
-									name="description"
-									placeholder="Describe your project..."
-									required
-									value={values.description}
-									onChange={handleChange}
-								/>
+								<TextareaField label="Description" name="description" placeholder="Describe your project..." required />
 
 								{/* Technologies */}
 								<ArrayTextField label="Technologies" name="technologies" placeholder="Enter to add value.." />
 
 								{/* Site URL */}
-								<InputField
-									label="Site URL"
-									name="site_url"
-									placeholder="https://example.com"
-									value={values.site_url as string | undefined}
-									onChange={handleChange}
-								/>
+								<InputField label="Site URL" name="site_url" placeholder="https://example.com" />
 
 								{/* Source Code URL */}
-								<InputField
-									label="Source Code URL"
-									name="source_code_url"
-									placeholder="https://github.com"
-									value={values.source_code_url as string | undefined}
-									onChange={handleChange}
-								/>
+								<InputField label="Source Code URL" name="source_code_url" placeholder="https://github.com" />
 
 								{/* Demo URL */}
-								<InputField
-									label="Demo URL"
-									name="demo_url"
-									placeholder="https://example.com"
-									value={values.demo_url as string | undefined}
-									onChange={handleChange}
-								/>
+								<InputField label="Demo URL" name="demo_url" placeholder="https://example.com" />
 							</div>
 
 							{/* Image Upload */}
-							<ImageInputField
-								label="Image"
-								name="image"
-								preview={values.image}
-								onChange={(e) => setFieldValue("image", e.target.files?.[0] || null)}
-							/>
+							<ImageInputField label="Image" name="image" />
 						</div>
 
 						{/* Submit & Reset Buttons */}

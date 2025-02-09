@@ -1,13 +1,13 @@
 import React, { useState, useRef } from "react";
 import { useField } from "formik";
 
-const state = {
+const STATE = {
 	DEFAULT: "DEFAULT",
 	FOCUSED: "FOCUSED",
 	WARNING: "WARNING",
 	ERROR: "ERROR"
 } as const;
-type InputState = (typeof state)[keyof typeof state];
+type InputState = (typeof STATE)[keyof typeof STATE];
 type ArrayTextFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 	label: string | number;
 };
@@ -22,8 +22,7 @@ export default function ArrayTextField({
 	const [field, meta, helpers] = useField(name);
 	const [inputValue, setInputValue] = useState("");
 	const ref = useRef<HTMLInputElement>(null);
-	const [currentState, setCurrentState] = useState<InputState>(state.DEFAULT);
-	const [isFilled, setIsFilled] = useState(false);
+	const [currentState, setCurrentState] = useState<InputState>(STATE.DEFAULT);
 
 	const tags = Array.isArray(field.value)
 		? field.value.filter((tag) => tag.trim() !== "")
@@ -45,7 +44,6 @@ export default function ArrayTextField({
 			}
 		}
 		setInputValue("");
-		setIsFilled(false);
 	};
 
 	const removeTag = (index: number) => {
@@ -64,27 +62,21 @@ export default function ArrayTextField({
 		}
 	};
 
-	const handleFocus = () => setCurrentState(state.FOCUSED);
+	const handleFocus = () => setCurrentState(STATE.FOCUSED);
 
-	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-		setCurrentState(state.DEFAULT);
-		setIsFilled(e.target.value !== "");
-	};
+	const handleBlur = () => setCurrentState(STATE.DEFAULT);
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setInputValue(e.target.value);
-		setIsFilled(e.target.value !== "");
-	};
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value);
 
 	const getBorderClass = () => {
 		switch (currentState) {
-			case state.DEFAULT:
-				return isFilled ? "border-blue-500" : "border-neutral-400";
-			case state.FOCUSED:
-				return isFilled ? "border-blue-500" : "border-neutral-950";
-			case state.WARNING:
+			case STATE.DEFAULT:
+				return inputValue ? "border-blue-500" : "border-neutral-400";
+			case STATE.FOCUSED:
+				return inputValue ? "border-blue-500" : "border-neutral-950";
+			case STATE.WARNING:
 				return "border-yellow-500";
-			case state.ERROR:
+			case STATE.ERROR:
 				return "border-red-500";
 			default:
 				return "";
@@ -111,7 +103,7 @@ export default function ArrayTextField({
 				<span
 					className={`absolute px-1 left-2 transition-all leading-none bg-white
           ${
-						currentState === state.FOCUSED || isFilled
+						inputValue || currentState === STATE.FOCUSED
 							? "top-0 -translate-y-3/5 font-semibold tracking-wider text-xs text-neutral-950"
 							: "top-1/2 -translate-y-1/2 font-normal tracking-normal text-base text-neutral-700"
 					}`}
@@ -122,8 +114,8 @@ export default function ArrayTextField({
 
 				{/* Placeholder */}
 				<span
-					className={`absolute left-3 top-1/2 -translate-y-1/2 font-normal leading-none text-base text-neutral-500
-                ${isFilled ? "hidden" : currentState === state.FOCUSED ? "visible" : "hidden"}
+					className={`absolute left-3 top-1/2 -translate-y-1/2 font-normal leading-none text-base text-neutral-500 pointer-events-none
+                ${inputValue || currentState !== STATE.FOCUSED ? "hidden" : "visible"}
               `}
 				>
 					{placeholder}

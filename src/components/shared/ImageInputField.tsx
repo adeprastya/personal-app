@@ -1,112 +1,105 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { useField } from "formik";
 
-const state = {
+const STATE = {
 	DEFAULT: "DEFAULT",
 	FOCUSED: "FOCUSED",
 	WARNING: "WARNING",
 	ERROR: "ERROR"
 } as const;
-type InputState = (typeof state)[keyof typeof state];
+type InputState = (typeof STATE)[keyof typeof STATE];
 
 type ImageInputFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 	label: string | number;
-	name: string;
-	preview: File | string | null;
-	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	name: string; // pastikan name selalu didefinisikan untuk Formik
 };
 
-export default function ImageInputField({ label, name, preview, onChange, ...props }: ImageInputFieldProps) {
-	const ref = useRef<HTMLInputElement>(null);
-	const [currentState, setCurrentState] = useState<InputState>(state.DEFAULT);
-	const [isFilled, setIsFilled] = useState(false);
+export default function ImageInputField({ label, name, ...props }: ImageInputFieldProps) {
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [currentState, setCurrentState] = useState<InputState>(STATE.DEFAULT);
 	const [previewURL, setPreviewURL] = useState<string | null>(null);
+	const [field, meta] = useField(name);
 
 	useEffect(() => {
-		if (preview instanceof File) {
-			const url = URL.createObjectURL(preview);
+		// Jika field.value adalah File, buat blob URL untuk preview
+		if (field.value instanceof File) {
+			const url = URL.createObjectURL(field.value);
 			setPreviewURL(url);
 			return () => {
 				URL.revokeObjectURL(url);
 			};
-		} else if (typeof preview === "string") {
-			setPreviewURL(preview);
 		} else {
 			setPreviewURL(null);
 		}
-	}, [preview]);
+	}, [field.value]);
 
-	const handleFocus = () => setCurrentState(state.FOCUSED);
-
-	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-		setCurrentState(state.DEFAULT);
-		setIsFilled(e.target.value !== "");
+	// Tangani perubahan file input dengan mengambil file object secara eksplisit
+	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files && e.target.files[0]) {
+			const file = e.target.files[0];
+			field.onChange({ target: { name, value: file } });
+		}
 	};
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		onChange(e);
-		setIsFilled(e.target.value !== "");
+	const handleFocus = () => setCurrentState(STATE.FOCUSED);
+
+	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		setCurrentState(STATE.DEFAULT);
+		field.onBlur(e);
 	};
 
 	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setCurrentState(state.FOCUSED);
+		setCurrentState(STATE.FOCUSED);
 	};
 
 	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setCurrentState(state.FOCUSED);
+		setCurrentState(STATE.FOCUSED);
 	};
 
 	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setCurrentState(state.DEFAULT);
+		setCurrentState(STATE.DEFAULT);
 	};
 
+	// Tangani drop event dengan mengambil file object dari event
 	const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
 		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-			const fakeEvent = {
-				target: {
-					files: e.dataTransfer.files
-				}
-			} as React.ChangeEvent<HTMLInputElement>;
-			onChange(fakeEvent);
-			setIsFilled(true);
+			const file = e.dataTransfer.files[0];
+			field.onChange({ target: { name, value: file } });
 		}
-		setCurrentState(state.DEFAULT);
+		setCurrentState(STATE.DEFAULT);
 	};
 
-	const handleCLick = (e: React.MouseEvent<HTMLInputElement>) => {
+	// Jika sudah ada preview, klik pada input akan menghapus file
+	const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
 		if (previewURL) {
 			e.preventDefault();
-			if (ref.current) {
-				ref.current.value = "";
+			if (inputRef.current) {
+				inputRef.current.value = "";
 			}
 			setPreviewURL(null);
-			setIsFilled(false);
-
-			const emptyFileList = new DataTransfer().files;
-			const removalEvent = {
-				target: { name, files: emptyFileList }
-			} as React.ChangeEvent<HTMLInputElement>;
-			onChange(removalEvent);
+			// Kirimkan nilai kosong ke Formik untuk menghapus file
+			field.onChange({ target: { name, value: "" } });
 		}
 	};
 
 	const getBorderClass = () => {
 		switch (currentState) {
-			case state.DEFAULT:
-				return isFilled ? "border-blue-500" : "border-neutral-400";
-			case state.FOCUSED:
-				return isFilled ? "border-blue-500" : "border-neutral-950";
-			case state.WARNING:
+			case STATE.DEFAULT:
+				return field.value ? "border-blue-500" : "border-neutral-400";
+			case STATE.FOCUSED:
+				return field.value ? "border-blue-500" : "border-neutral-950";
+			case STATE.WARNING:
 				return "border-yellow-500";
-			case state.ERROR:
+			case STATE.ERROR:
 				return "border-red-500";
 			default:
 				return "";
@@ -139,28 +132,34 @@ export default function ImageInputField({ label, name, preview, onChange, ...pro
 						width={200}
 						height={100}
 						className="w-full h-full object-cover object-center"
+						unoptimized // Menonaktifkan optimisasi Next.js untuk blob URL
 					/>
 				)}
 
 				{/* Input File */}
 				<input
-					ref={ref}
+					ref={inputRef}
 					id={name}
 					name={name}
 					type="file"
 					accept="image/*"
 					onChange={handleImageChange}
-					onClick={handleCLick}
+					onClick={handleClick}
 					onFocus={handleFocus}
 					onBlur={handleBlur}
 					className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
 					{...props}
 				/>
 
-				{/* Text */}
+				{/* Inner Text */}
 				<span className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400">
 					{previewURL ? "Click to remove" : "Select Image or Drag n Drop"}
 				</span>
+
+				{/* Error Message */}
+				{meta.touched && meta.error && (
+					<p className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs">{meta.error}</p>
+				)}
 			</div>
 		</div>
 	);
