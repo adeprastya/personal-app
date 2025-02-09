@@ -22,8 +22,11 @@ export default function ProjectDetailPage() {
 	};
 
 	const handleUpdate = async (e: React.FocusEvent<HTMLElement>, field: string) => {
-		const newValue = e.currentTarget.textContent?.trim() ?? "";
-		const oldValue = e.currentTarget.dataset.oldValue || newValue;
+		const target = e.currentTarget;
+		const newValue = target.textContent?.trim() ?? "";
+		const oldValue = target.dataset.oldValue || newValue;
+
+		if (newValue === oldValue) return;
 
 		try {
 			validate(UpdateProjectSchema, { [field]: newValue });
@@ -35,11 +38,17 @@ export default function ProjectDetailPage() {
 			});
 
 			console.log("Update success:", data);
-			e.currentTarget.dataset.oldValue = newValue;
+
+			if (target) {
+				target.dataset.oldValue = newValue;
+			}
+
 			refetch();
 		} catch (err) {
 			console.error(err);
-			e.currentTarget.textContent = oldValue;
+			if (target) {
+				target.textContent = oldValue;
+			}
 		}
 	};
 
