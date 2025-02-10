@@ -98,7 +98,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 								<TextareaField label="Description" name="description" placeholder="Describe your project..." required />
 
 								{/* Technologies */}
-								<ArrayTextField label="Technologies" name="technologies" placeholder="Enter to add value.." />
+								<ArrayTextField label="Technologies" name="technologies" placeholder="Enter to add value.." required />
 
 								{/* Site URL */}
 								<InputField label="Site URL" name="site_url" placeholder="https://example.com" />
