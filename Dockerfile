@@ -6,6 +6,7 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+COPY .env.example .env
 
 RUN npm run build
 
@@ -24,4 +25,4 @@ EXPOSE ${PORT}
 CMD ["npm", "run", "start"]
 
 # docker build --tag local-personal-app:latest .
-# docker run -d --name personal-app --env-file .env.secret --publish 3000:3000 local-personal-app:latest
+# docker run -d --name personal-app --env-file .env --publish 3000:3000 local-personal-app:latest

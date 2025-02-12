@@ -4,7 +4,7 @@ services:
     image: local-personal-app:latest
     container_name: personal-app
     env_file:
-      - .env.secret
+      - .env
     ports:
       - "${PORT}:${PORT}"
 # docker-compose up --build
