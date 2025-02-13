@@ -357,6 +357,7 @@ export default function ProjectDetailPage() {
 						alt={project?.title || ""}
 						width={800}
 						height={300}
+						unoptimized
 						className="w-xl aspect-video object-cover rounded-sm"
 					/>
 				</div>

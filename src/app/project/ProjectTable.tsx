@@ -77,6 +77,7 @@ function ProjectRow({ project, refetch }: { project: Project; refetch: () => voi
 					alt={project.title}
 					width={160}
 					height={90}
+					unoptimized
 					className="w-30 border border-neutral-500 aspect-video object-cover object-center"
 				/>
 			</td>
