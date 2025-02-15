@@ -30,7 +30,13 @@ export default auth(async (req) => {
 	// Public API
 	const publicApiMethods = publicApi[pathname];
 	if (publicApiMethods && publicApiMethods.includes(method)) {
-		return NextResponse.next();
+		const response = NextResponse.next();
+
+		response.headers.set("Access-Control-Allow-Origin", "*");
+		response.headers.set("Access-Control-Allow-Methods", method);
+		response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+		return response;
 	}
 
 	// Internal API
