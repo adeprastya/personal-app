@@ -21,10 +21,12 @@ projects:
   source_code_url: String(uri) | undefined
   demo_url: String(uri) | undefined
 
-  image_thumbnail_url: String(uri) [max 10mb]
-  images_project_url: Array<String(uri)>(min 1, max 10) [max 10mb]
+  image: {
+    thumbnail_url: String(uri) [max 10mb]
+    preview_urls: Array<String(uri)>(min 1, max 10) [max 10mb]
+  }
 }
 
 ### Storage Bucket
 
-projects/ : This path is for storing project images, and the url is saved to Firestore.projects.image_url
+projects/ : This path is for storing project images, and the url is saved to Firestore.projects.image

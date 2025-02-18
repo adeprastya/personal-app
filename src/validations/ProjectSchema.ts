@@ -6,7 +6,7 @@ export const IdSchema = Joi.string().required().messages({
 });
 
 export const ImageFileSchema = Joi.object({
-	mimetype: Joi.string().valid("image/jpeg", "image/png", "image/jpg").required().messages({
+	mimetype: Joi.string().valid("image/jpeg", "image/png", "image/jpg", "image/webp").required().messages({
 		"string.empty": "Image is required",
 		"any.required": "Image is required",
 		"any.only": "Only JPG, JPEG, and PNG files are allowed"
@@ -30,6 +30,12 @@ export const CreateProjectSchema = Joi.object({
 		"string.min": "Title must be at least 1 character long",
 		"string.max": "Title must be at most 100 characters long",
 		"any.required": "Title is required"
+	}),
+	tagline: Joi.string().min(1).max(100).required().messages({
+		"string.empty": "Tagline is required",
+		"string.min": "Tagline must be at least 1 character long",
+		"string.max": "Tagline must be at most 100 characters long",
+		"any.required": "Tagline is required"
 	}),
 	description: Joi.string().min(10).max(2000).required().messages({
 		"string.empty": "Description is required",
@@ -70,6 +76,10 @@ export const UpdateProjectSchema = Joi.object({
 	title: Joi.string().min(1).max(100).optional().messages({
 		"string.min": "Title must be at least 1 character long",
 		"string.max": "Title must be at most 100 characters long"
+	}),
+	tagline: Joi.string().min(1).max(100).optional().messages({
+		"string.min": "Tagline must be at least 1 character long",
+		"string.max": "Tagline must be at most 100 characters long"
 	}),
 	description: Joi.string().min(10).max(2000).optional().messages({
 		"string.min": "Description must be at least 10 characters long",
