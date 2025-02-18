@@ -64,13 +64,13 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 
 		validate(CreateProjectSchema, cleanData);
 		validate(ImageFileSchema, {
-			mimetype: reqThumbnail?.type,
-			size: reqThumbnail?.size
+			mimetype: reqThumbnail.type,
+			size: reqThumbnail.size
 		});
 		reqPreviews.forEach((preview) => {
 			validate(ImageFileSchema, {
-				mimetype: preview?.type,
-				size: preview?.size
+				mimetype: preview.type,
+				size: preview.size
 			});
 		});
 
@@ -114,18 +114,81 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) => {
 	try {
 		const id = (await params).id[0];
-		let reqBody = await req.text();
+		validate(IdSchema, id);
 
-		try {
-			reqBody = JSON.parse(reqBody);
-		} catch (err) {
-			throw new CustomErrorResponse(400, "Data must be a valid JSON object", err);
+		const reqForm = await req.formData();
+
+		// Handle Optional Data Update
+		let reqData: Partial<Project> = {};
+		const reqDataString = reqForm.get("data") as string;
+		if (reqDataString) {
+			try {
+				reqData = JSON.parse(reqDataString);
+			} catch (err) {
+				throw new CustomErrorResponse(400, "Data must be a valid JSON object", err);
+			}
+			validate(UpdateProjectSchema, reqData);
 		}
 
-		validate(IdSchema, id);
-		validate(UpdateProjectSchema, reqBody);
+		const currentProject = await ProjectCollection.findByField("id", "==", id);
+		if (!currentProject) {
+			throw new CustomErrorResponse(404, "Project not found");
+		}
 
-		await ProjectCollection.update(id, reqBody as Partial<Project>);
+		const projectTitle = reqData.title || currentProject.title;
+
+		// Handle Optional Thumbnail Update
+		const reqThumbnail = reqForm.get("thumbnail") as File;
+		if (reqThumbnail) {
+			validate(ImageFileSchema, {
+				mimetype: reqThumbnail.type,
+				size: reqThumbnail.size
+			});
+
+			if (currentProject.image_thumbnail_url) {
+				const oldThumbnailPath = currentProject.image_thumbnail_url.replace(/^.*\/(projects\/.*\/.*)$/, "$1");
+				await CloudStorageInstance.deleteFile(oldThumbnailPath);
+			}
+
+			const thumbnailBuffer = Buffer.from(await reqThumbnail.arrayBuffer());
+			const thumbnailFile = { mimetype: reqThumbnail.type, buffer: thumbnailBuffer };
+			const newThumbnailUrl = await CloudStorageInstance.storeFile(
+				`projects/${projectTitle}-${id}/thumbnail`,
+				thumbnailFile
+			);
+			reqData.image_thumbnail_url = newThumbnailUrl;
+		}
+
+		// // TODO: Know which preview index is being updated or deleted or added
+		// // Handle Optional Preview Images Update
+		// const reqPreviews = reqForm.getAll("preview") as File[];
+		// if (reqPreviews && reqPreviews.length > 0) {
+		// 	reqPreviews.forEach((preview) => {
+		// 		validate(ImageFileSchema, {
+		// 			mimetype: preview.type,
+		// 			size: preview.size
+		// 		});
+		// 	});
+
+		// 	if (currentProject.image_preview_urls && currentProject.image_preview_urls.length > 0) {
+		// 		const oldPreviewPaths = currentProject.image_preview_urls.map((url) =>
+		// 			url.replace(/^.*\/(projects\/.*\/.*)$/, "$1")
+		// 		);
+		// 		await Promise.all(oldPreviewPaths.map((path) => CloudStorageInstance.deleteFile(path)));
+		// 	}
+
+		// 	const newPreviewUrls = await Promise.all(
+		// 		reqPreviews.map(async (preview, index) => {
+		// 			const previewBuffer = Buffer.from(await preview.arrayBuffer());
+		// 			const previewFile = { mimetype: preview.type, buffer: previewBuffer };
+		// 			return CloudStorageInstance.storeFile(`projects/${projectTitle}-${id}/preview-${index + 1}`, previewFile);
+		// 		})
+		// 	);
+		// 	reqData.image_preview_urls = newPreviewUrls;
+		// }
+
+		const cleanData = filterEmptyObjectFields(reqData);
+		await ProjectCollection.update(id, cleanData as Partial<Project>);
 
 		return successResponse(200, "Project updated successfully");
 	} catch (err) {
