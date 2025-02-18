@@ -11,8 +11,6 @@ export type Project = {
 	source_code_url?: string | null;
 	demo_url?: string | null;
 
-	image: {
-		thumbnail_url: string;
-		preview_urls: Array<string>;
-	};
+	image_thumbnail_url: string;
+	image_preview_urls: Array<string>;
 };

@@ -24,10 +24,18 @@ export class FirestoreCollection<T extends { id: string }> {
 		return this.#collection;
 	}
 
-	async findAll(): Promise<T[]> {
+	async findAll<K extends keyof T>(fields?: K[]): Promise<Pick<T, K>[] | T[]> {
 		try {
 			const snapshot = await this.#collection.get();
-			return snapshot.docs.map((doc) => doc.data());
+
+			return snapshot.docs.map((doc) => {
+				const data = doc.data();
+				if (fields && fields.length > 0) {
+					return Object.fromEntries(Object.entries(data).filter(([key]) => fields.includes(key as K))) as Pick<T, K>;
+				}
+
+				return data;
+			});
 		} catch (err) {
 			throw new CustomErrorResponse(500, "Failed getting documents", err);
 		}

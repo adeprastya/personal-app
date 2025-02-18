@@ -22,14 +22,17 @@ export const GET = ErrorHandler(async (req: NextRequest, { params }: Params) => 
 			validate(IdSchema, id);
 
 			const project = await ProjectCollection.findByField("id", "==", id);
+
 			if (!project) {
 				throw new CustomErrorResponse(404, "Project not found");
 			}
 
+			project.created_at = timestampToReadable(project.created_at);
+
 			return successResponse(200, "Project retrieved successfully", project);
 		}
 
-		const projects = await ProjectCollection.findAll();
+		const projects = await ProjectCollection.findAll(["id", "created_at", "title", "tagline", "image_thumbnail_url"]);
 
 		const sortedProjects = projects
 			.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -77,7 +80,7 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 			mimetype: reqThumbnail.type,
 			buffer: Buffer.from(await reqThumbnail.arrayBuffer())
 		};
-		const thumbnail_url = await CloudStorageInstance.storeFile(
+		const image_thumbnail_url = await CloudStorageInstance.storeFile(
 			`projects/${cleanData.title}-${id}/thumbnail`,
 			thumbnail
 		);
@@ -86,7 +89,7 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 			mimetype: preview.type,
 			buffer: Buffer.from(await preview.arrayBuffer())
 		}));
-		const preview_urls = await Promise.all(
+		const image_preview_urls = await Promise.all(
 			previews.map(async (preview, i) =>
 				CloudStorageInstance.storeFile(`projects/${cleanData.title}-${id}/preview-${i + 1}`, await preview)
 			)
@@ -94,10 +97,8 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 
 		const data = {
 			...(reqData as Partial<Project>),
-			image: {
-				thumbnail_url,
-				preview_urls
-			},
+			image_thumbnail_url,
+			image_preview_urls,
 			id,
 			created_at: new Date().toISOString()
 		};
