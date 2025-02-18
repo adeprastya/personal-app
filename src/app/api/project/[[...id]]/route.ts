@@ -145,8 +145,11 @@ export const DELETE = ErrorHandler(async (req: NextRequest, { params }: Params) 
 			throw new CustomErrorResponse(404, "Project not found");
 		}
 
-		const image_url = tempData.image_url.split("/").slice(-1)[0];
-		await CloudStorageInstance.deleteFile(`projects/${image_url}`);
+		const image_url = tempData.image_thumbnail_url.replace(/^.*\/(projects\/.*\/.*)$/, "$1");
+		await CloudStorageInstance.deleteFile(image_url);
+
+		const image_preview_urls = tempData.image_preview_urls.map((url) => url.replace(/^.*\/(projects\/.*\/.*)$/, "$1"));
+		await Promise.all(image_preview_urls.map((url) => CloudStorageInstance.deleteFile(url)));
 
 		await ProjectCollection.delete(id);
 
