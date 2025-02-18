@@ -10,16 +10,19 @@ users:
 projects: 
 {
   id: String
-  created_at: Timestamp Date,
+  created_at: Timestamp Date
 
-  image_url: String (uri),
+  title: String(min 1, max 100)
+  tagline: String(min 1, max 100)
+  description: String(min 1, max 2000)
+  technologies: Array<String(min 1, max 100)>(min 1, max 20)
 
-  title: String (min 1, max 100),
-  description: String (min 10, max 2000),
-  technologies: Array<String (min 1, max 100)> (min 1, max 20),
-  site_url: String (uri) | undefined,
-  source_code_url: String (uri) | undefined,
-  demo_url: String (uri) | undefined,
+  site_url: String(uri) | undefined
+  source_code_url: String(uri) | undefined
+  demo_url: String(uri) | undefined
+
+  image_thumbnail_url: String(uri) [max 10mb]
+  images_project_url: Array<String(uri)>(min 1, max 10) [max 10mb]
 }
 
 ### Storage Bucket
