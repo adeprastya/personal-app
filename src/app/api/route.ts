@@ -1,7 +1,7 @@
 import { successResponse } from "@/utils/response";
 import { timestampToReadable } from "@/utils/helper";
 
-// PUBLIC API
+// PUBLIC API / Check Server Health
 export const GET = async () =>
 	successResponse(200, "Server is running", {
 		date: timestampToReadable(new Date().toISOString(), {

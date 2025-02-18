@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import type { Project } from "@/types/Project";
 import ProjectCollection from "@/models/Project";
-import { generateId, timestampToReadable } from "@/utils/helper";
+import { filterEmptyObjectFields, generateId, timestampToReadable } from "@/utils/helper";
 import { successResponse } from "@/utils/response";
 import { CloudStorageInstance } from "@/services/CloudStorage";
 import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
@@ -11,7 +11,7 @@ import { ErrorHandler } from "@/middlewares/ErrorHandler";
 
 type Params = { params: Promise<{ id: string }> };
 
-// PUBLIC API
+// PUBLIC API / Get All Project / Get Single Detailed Project
 export const GET = ErrorHandler(async (req: NextRequest, { params }: Params) => {
 	try {
 		const param = await params;
@@ -44,40 +44,60 @@ export const GET = ErrorHandler(async (req: NextRequest, { params }: Params) => 
 	}
 });
 
-// PROTECTED API
+// PROTECTED API / Create Project
 export const POST = ErrorHandler(async (req: NextRequest) => {
 	try {
 		const reqForm = await req.formData();
-		const reqImage = reqForm.get("image") as File;
 		let reqData = reqForm.get("data") as string;
-
-		validate(ImageFileSchema, {
-			mimetype: reqImage?.type,
-			size: reqImage?.size
-		});
+		const reqThumbnail = reqForm.get("thumbnail") as File;
+		const reqPreviews = reqForm.getAll("preview") as File[];
 
 		try {
 			reqData = JSON.parse(reqData);
 		} catch (err) {
 			throw new CustomErrorResponse(400, "Data must be a valid JSON object", err);
 		}
-
-		const cleanData = Object.fromEntries(
-			Object.entries(reqData).filter(([, value]) => value !== "" && value !== null && value !== undefined)
-		);
+		const cleanData: Partial<Project> = filterEmptyObjectFields(reqData as unknown as object);
 
 		validate(CreateProjectSchema, cleanData);
+		validate(ImageFileSchema, {
+			mimetype: reqThumbnail?.type,
+			size: reqThumbnail?.size
+		});
+		reqPreviews.forEach((preview) => {
+			validate(ImageFileSchema, {
+				mimetype: preview?.type,
+				size: preview?.size
+			});
+		});
 
 		const id = generateId();
-		const image = {
-			mimetype: reqImage.type,
-			buffer: Buffer.from(await reqImage.arrayBuffer())
+
+		const thumbnail = {
+			mimetype: reqThumbnail.type,
+			buffer: Buffer.from(await reqThumbnail.arrayBuffer())
 		};
-		const image_url = await CloudStorageInstance.storeFile(`projects/${id}`, image);
+		const thumbnail_url = await CloudStorageInstance.storeFile(
+			`projects/${cleanData.title}-${id}/thumbnail`,
+			thumbnail
+		);
+
+		const previews = reqPreviews.map(async (preview) => ({
+			mimetype: preview.type,
+			buffer: Buffer.from(await preview.arrayBuffer())
+		}));
+		const preview_urls = await Promise.all(
+			previews.map(async (preview, i) =>
+				CloudStorageInstance.storeFile(`projects/${cleanData.title}-${id}/preview-${i + 1}`, await preview)
+			)
+		);
 
 		const data = {
 			...(reqData as Partial<Project>),
-			image_url,
+			image: {
+				thumbnail_url,
+				preview_urls
+			},
 			id,
 			created_at: new Date().toISOString()
 		};
@@ -89,7 +109,7 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 	}
 });
 
-// PROTECTED API
+// PROTECTED API / Update Project
 export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) => {
 	try {
 		const id = (await params).id[0];
@@ -112,7 +132,7 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 	}
 });
 
-// PROTECTED API
+// PROTECTED API / Delete Project
 export const DELETE = ErrorHandler(async (req: NextRequest, { params }: Params) => {
 	try {
 		const id = (await params).id[0];
