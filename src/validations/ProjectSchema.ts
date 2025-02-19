@@ -111,3 +111,15 @@ export const UpdateProjectSchema = Joi.object({
 	"object.base": "Invalid data provided",
 	"object.unknown": "Unknown fields are not allowed"
 });
+
+export const UpdateProjectPreviewDetailSchema = Joi.object({
+	delete: Joi.array().items(Joi.string().uri()).max(10).optional().messages({
+		"array.max": "At most 10 preview urls are allowed"
+	}),
+	update: Joi.array().items(Joi.string().uri()).max(10).optional().messages({
+		"array.max": "At most 10 preview urls are allowed"
+	})
+}).messages({
+	"object.base": "Invalid data provided",
+	"object.unknown": "Unknown fields are not allowed"
+});
