@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "Health Check",
+			"name": "Check Server Health",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -34,19 +34,74 @@
 			"response": []
 		},
 		{
-			"name": "Auth Login",
+			"name": "Check User Registration",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-internal-secret",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"test@mail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/user",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Session",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "authjs.session-token={{token}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{host}}/api/auth/google",
+					"raw": "{{host}}/api/auth/session",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"auth",
-						"google"
+						"session"
 					]
 				}
 			},
@@ -56,14 +111,7 @@
 			"name": "Project Get All",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [],
@@ -81,28 +129,53 @@
 			"response": []
 		},
 		{
+			"name": "Project Get Detailed",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/api/project/{{projectId}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"project",
+						"{{projectId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Project Create",
 			"request": {
 				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "{{token}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "formdata",
 					"formdata": [
 						{
-							"key": "image",
-							"type": "file",
-							"src": "c:\\Users\\adefa\\Pictures\\Screenshots\\Screenshot 2025-01-28 005247.png"
+							"key": "data",
+							"value": "{\n    \"title\": \"Title\",\n    \"tagline\": \"Its a tagline\",\n    \"description\": \"Its a long description\",\n    \"technologies\": [\"some\", \"tech\"],\n\n    \"site_url\": \"https://test.com\",\n    \"source_code_url\": \"https://test.com\",\n    \"demo_url\": \"https://test.com\"\n}\n",
+							"type": "text"
 						},
 						{
-							"key": "data",
-							"value": "{  \"title\": \"TEST\",  \"description\": \"Description\",  \"technologies\": [\"Express\", \"React\", \"Tensorflow\", \"Firestore\", \"Compute Engine\", \"Google Cloud Storage\"],  \"site_url\": \"https://docid.com\",  \"source_code_url\": \"https://github.com/adeprastya/water-eye\",  \"demo_url\": \"https://youtu.be/46S1e3KE3hU\"}",
-							"type": "text"
+							"key": "thumbnail",
+							"type": "file",
+							"src": "/C:/Users/adefa/Downloads/image-png.test.png"
+						},
+						{
+							"key": "preview",
+							"type": "file",
+							"src": [
+								"/C:/Users/adefa/Downloads/image-png.test.png",
+								"/C:/Users/adefa/Downloads/image-jpg.test.jpg",
+								"/C:/Users/adefa/Downloads/image-web.test.webp"
+							]
 						}
 					]
 				},
@@ -123,21 +196,33 @@
 			"name": "Project Update",
 			"request": {
 				"method": "PATCH",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "{{token}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"title\": \"___UPDATED___\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "data",
+							"value": "{\n    \"title\": \"_UPDATED_\"\n}",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "thumbnail",
+							"type": "file",
+							"src": "/C:/Users/adefa/Downloads/image-web.test.webp",
+							"disabled": true
+						},
+						{
+							"key": "previews",
+							"type": "file",
+							"src": "/C:/Users/adefa/Downloads/image-png.test.png"
+						},
+						{
+							"key": "preview_detail",
+							"value": "{\n    \"delete\": [\n            \"https://storage.googleapis.com/adefathoniprastya-personal-storage/projects/4eaddb0e-1e71-4254-bbac-a5c46eb0661b/preview-1.png\"\n        ],\n\n    \"update\": [\n            \"https://storage.googleapis.com/adefathoniprastya-personal-storage/projects/4eaddb0e-1e71-4254-bbac-a5c46eb0661b/preview-1.png\"\n        ]\n}",
+							"type": "text"
 						}
-					}
+					]
 				},
 				"url": {
 					"raw": "{{host}}/api/project/{{projectId}}",
@@ -157,13 +242,7 @@
 			"name": "Project Delete",
 			"request": {
 				"method": "DELETE",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "{{token}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": "",
@@ -214,13 +293,13 @@
 		{
 			"key": "host",
 			"value": "",
-			"type": "string"
+			"type": "string",
+			"disabled": true
 		},
 		{
 			"key": "host",
 			"value": "",
-			"type": "string",
-			"disabled": true
+			"type": "string"
 		},
 		{
 			"key": "token",

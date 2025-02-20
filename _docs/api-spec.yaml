@@ -1,124 +1,184 @@
 openapi: 3.0.3
 info:
   title: Personal App
-  description: API for managing personal data.
+  description: API untuk mengelola data personal.
   version: 1.0.0
 servers:
-  - url: https://{{host}}
+  - url: http://localhost:3000
+  - url: https://personal-app-533799590019.us-central1.run.app
 
 paths:
   /api:
     get:
-      summary: Health checks.
+      summary: Cek kesehatan server
+      description: Endpoint untuk melakukan pengecekan kesehatan server.
+      security:
+        - bearerAuth: []
       responses:
         "200":
-          description: OK
+          description: Server dalam keadaan sehat.
 
-  /api/project:
-    get:
-      summary: Retrieve all projects.
-      responses:
-        "200":
-          description: List of projects.
-        "500":
-          description: Internal server error.
-
+  /api/user:
     post:
-      summary: Create a new project.
-      security:
-        - bearerAuth: []
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                data:
-                  type: string
-                  description: JSON string of project data.
-      responses:
-        "201":
-          description: Project created successfully.
-        "400":
-          description: Bad request.
-        "401":
-          description: Unauthorized.
-        "500":
-          description: Internal server error.
-
-  /api/project/{projectId}:
-    get:
-      summary: Retrieve a detailed project by ID.
-      security:
-        - bearerAuth: []
+      summary: Cek Pendaftaran Pengguna
+      description: Memeriksa (atau mendaftarkan) pengguna berdasarkan email.
       parameters:
-        - name: projectId
-          in: path
+        - name: x-internal-secret
+          in: header
           required: true
           schema:
             type: string
-      responses:
-        "200":
-          description: Project retrieved successfully.
-        "401":
-          description: Unauthorized.
-        "404":
-          description: Project not found.
-        "500":
-          description: Internal server error.
-
-    patch:
-      summary: Update a project by ID.
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
+          description: Header rahasia internal.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                title:
+                email:
                   type: string
+              required:
+                - email
       responses:
         "200":
-          description: Project updated successfully.
+          description: Pendaftaran pengguna berhasil dicek.
         "400":
-          description: Bad request.
-        "401":
-          description: Unauthorized.
-        "404":
-          description: Project not found.
+          description: Permintaan tidak valid.
         "500":
-          description: Internal server error.
+          description: Terjadi kesalahan pada server.
 
-    delete:
-      summary: Delete a project by ID.
-      security:
-        - bearerAuth: []
+  /api/auth/session:
+    get:
+      summary: Cek Sesi Pengguna
+      description: Memeriksa sesi pengguna berdasarkan token sesi yang dikirim melalui cookie.
       parameters:
-        - name: projectId
-          in: path
-          required: true
+        - name: authjs.session-token
+          in: cookie
+          required: false
           schema:
             type: string
+          description: Token sesi.
       responses:
         "200":
-          description: Project deleted successfully.
+          description: Sesi pengguna valid.
         "401":
-          description: Unauthorized.
-        "404":
-          description: Project not found.
+          description: Tidak terautentikasi.
         "500":
-          description: Internal server error.
+          description: Terjadi kesalahan pada server.
+
+  /api/project:
+    get:
+      summary: Ambil semua proyek
+      responses:
+        "200":
+          description: Daftar proyek berhasil diambil.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+        "500":
+          description: Terjadi kesalahan pada server.
+    post:
+      summary: Buat proyek baru
+      description: Membuat proyek baru dengan mengirim data JSON dan file terkait.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+                  description: String JSON yang berisi data proyek (contoh = title, tagline, description, technologies, site_url, source_code_url, demo_url).
+                thumbnail:
+                  type: string
+                  format: binary
+                  description: File gambar thumbnail.
+                preview:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: File gambar preview (bisa lebih dari satu).
+              required:
+                - data
+      responses:
+        "201":
+          description: Proyek berhasil dibuat.
+        "400":
+          description: Permintaan tidak valid.
+        "500":
+          description: Terjadi kesalahan pada server.
+
+  /api/project/{projectId}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ID proyek
+    get:
+      summary: Ambil detail proyek berdasarkan ID
+      responses:
+        "200":
+          description: Proyek berhasil diambil.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Proyek tidak ditemukan.
+        "500":
+          description: Terjadi kesalahan pada server.
+    patch:
+      summary: Perbarui proyek berdasarkan ID
+      description: Memperbarui data proyek. Data diperbarui melalui form-data dengan kemungkinan mengirim file baru atau update detail preview.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+                  description: String JSON berisi field yang ingin diperbarui (contoh = title, dll.)
+                thumbnail:
+                  type: string
+                  format: binary
+                  description: (Opsional) File gambar thumbnail baru.
+                previews:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: File gambar preview baru (bisa lebih dari satu).
+                preview_detail:
+                  type: string
+                  description: String JSON yang mendeskripsikan detail update preview (misal = daftar URL yang akan dihapus atau diperbarui).
+      responses:
+        "200":
+          description: Proyek berhasil diperbarui.
+        "400":
+          description: Permintaan tidak valid.
+        "404":
+          description: Proyek tidak ditemukan.
+        "500":
+          description: Terjadi kesalahan pada server.
+    delete:
+      summary: Hapus proyek berdasarkan ID
+      responses:
+        "200":
+          description: Proyek berhasil dihapus.
+        "404":
+          description: Proyek tidak ditemukan.
+        "500":
+          description: Terjadi kesalahan pada server.
 
 components:
   securitySchemes:
@@ -126,31 +186,57 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
   schemas:
     Project:
       type: object
       properties:
         id:
           type: string
+        created_at:
+          type: string
+          format: date-time
         title:
           type: string
+          minLength: 1
+          maxLength: 100
+        tagline:
+          type: string
+          minLength: 1
+          maxLength: 100
         description:
           type: string
+          minLength: 1
+          maxLength: 2000
         technologies:
           type: array
           items:
             type: string
-        image_url:
-          type: string
+            minLength: 1
+            maxLength: 100
+          minItems: 1
+          maxItems: 20
         site_url:
           type: string
+          format: uri
           nullable: true
         source_code_url:
           type: string
+          format: uri
           nullable: true
         demo_url:
           type: string
+          format: uri
           nullable: true
-        created_at:
+        image_thumbnail_url:
           type: string
-          format: date-time
+          format: uri
+          description: URL untuk thumbnail image (maksimal 10mb)
+        image_preview_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+            description: URL untuk preview image (maksimal 10mb per file)
+          minItems: 1
+          maxItems: 10
