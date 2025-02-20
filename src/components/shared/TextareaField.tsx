@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useState } from "react";
 import { useField } from "formik";
 
@@ -9,6 +11,7 @@ const STATE = {
 } as const;
 type FieldState = (typeof STATE)[keyof typeof STATE];
 type FieldProps = React.InputHTMLAttributes<HTMLTextAreaElement> & {
+	name: string;
 	label: string | number;
 };
 

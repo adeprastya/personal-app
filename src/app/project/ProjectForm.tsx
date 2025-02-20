@@ -4,23 +4,29 @@ import { useState, useRef } from "react";
 import InputField from "@/components/shared/InputField";
 import TextareaField from "@/components/shared/TextareaField";
 import ImageInputField from "@/components/shared/ImageInputField";
+import ArrayTextField from "@/components/shared/ArrayTextField";
+import ArrayImageField from "@/components/shared/ArrayImageField";
 import { axiosFetch } from "@/hooks/useFetch";
 import { Formik, Form } from "formik";
 import { validate } from "@/validations/formikValidate";
 import { CreateProjectSchema } from "@/validations/ProjectSchema";
 import { filterEmptyArrayIndex, filterEmptyObjectFields } from "@/utils/helper";
 import { Project } from "@/types/Project";
-import ArrayTextField from "@/components/shared/ArrayTextField";
 
-type ProjectPayload = Omit<Project, "id" | "created_at" | "image_url"> & { image: File | null };
+type ProjectPayload = Omit<Project, "id" | "created_at" | "image_thumbnail_url" | "image_preview_urls"> & {
+	image_thumbnail: File | null;
+	image_previews: File[];
+};
 const FORM_INIT: ProjectPayload = {
 	title: "",
+	tagline: "",
 	description: "",
-	technologies: [""],
+	technologies: [],
 	site_url: "",
 	source_code_url: "",
 	demo_url: "",
-	image: null
+	image_thumbnail: null,
+	image_previews: []
 };
 
 export default function ProjectForm({ refetch }: { refetch: () => void }) {
@@ -29,24 +35,36 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 
 	const handleValidate = (data: Partial<ProjectPayload>) => {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const { image, technologies, ...rest } = data;
-		const clearTech = filterEmptyArrayIndex(technologies as string[]);
-		const clearData = filterEmptyObjectFields({ ...rest, technologies: clearTech });
+		const { image_thumbnail, image_previews, technologies, ...rest } = data;
+		const cleanTech = filterEmptyArrayIndex(technologies as string[]);
+		const cleanData = filterEmptyObjectFields({ ...rest, technologies: cleanTech });
 
-		return validate(CreateProjectSchema, clearData);
+		return validate(CreateProjectSchema, cleanData);
 	};
 
 	const handleSubmit = async (
 		values: Partial<ProjectPayload>,
 		{ setSubmitting, resetForm }: { setSubmitting: (a: boolean) => void; resetForm: () => void }
 	) => {
-		const { image, technologies, ...rest } = values;
+		const { image_thumbnail, image_previews, technologies, ...rest } = values;
 		const clearTech = filterEmptyArrayIndex(technologies as string[]);
 		const clearData = filterEmptyObjectFields({ ...rest, technologies: clearTech });
 
 		const formData = new FormData();
-		formData.append("image", image as File);
+		if (image_thumbnail) {
+			formData.append("thumbnail", image_thumbnail);
+		}
+		if (image_previews) {
+			const previewsArray = Array.isArray(image_previews) ? image_previews : [image_previews];
+			previewsArray.forEach((file) => {
+				formData.append("preview", file);
+			});
+		}
 		formData.append("data", JSON.stringify(clearData));
+
+		for (const [key, value] of formData.entries()) {
+			console.log(key, value);
+		}
 
 		const { data, error } = await axiosFetch({
 			method: "POST",
@@ -81,7 +99,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 				<span>{expandedForm ? "/\\" : "\\/"}</span>
 			</button>
 
-			{/* Formik Form */}
+			{/* Form */}
 			<Formik initialValues={FORM_INIT} validate={handleValidate} onSubmit={handleSubmit}>
 				{({ resetForm, isSubmitting }) => (
 					<Form
@@ -91,14 +109,22 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 					>
 						<div className="w-full pt-6 flex flex-col md:grid md:grid-cols-2 gap-6">
 							<div className="flex flex-col gap-6">
-								{/* Title Field */}
+								{/* Title */}
 								<InputField label="Title" name="title" placeholder="Your Project Title..." required />
 
-								{/* Description Field */}
+								{/* Tagline */}
+								<InputField label="Tagline" name="tagline" placeholder="Your Project Tagline..." required />
+
+								{/* Description */}
 								<TextareaField label="Description" name="description" placeholder="Describe your project..." required />
 
 								{/* Technologies */}
-								<ArrayTextField label="Technologies" name="technologies" placeholder="Enter to add value.." required />
+								<ArrayTextField
+									label="Technologies"
+									name="technologies"
+									placeholder="Type and Enter to add value..."
+									required
+								/>
 
 								{/* Site URL */}
 								<InputField label="Site URL" name="site_url" placeholder="https://example.com" />
@@ -110,8 +136,13 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 								<InputField label="Demo URL" name="demo_url" placeholder="https://example.com" />
 							</div>
 
-							{/* Image Upload */}
-							<ImageInputField label="Image" name="image" />
+							<div className="flex flex-col gap-6">
+								{/* Thumbnail Image Upload */}
+								<ImageInputField label="Thumbnail Image" name="image_thumbnail" />
+
+								{/* Preview Images Upload */}
+								<ArrayImageField label="Preview Images" name="image_previews" multiple />
+							</div>
 						</div>
 
 						{/* Submit & Reset Buttons */}

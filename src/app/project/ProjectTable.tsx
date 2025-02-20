@@ -73,7 +73,7 @@ function ProjectRow({ project, refetch }: { project: Project; refetch: () => voi
 			{/* Image */}
 			<td className="px-4 py-2">
 				<Image
-					src={project.image_url}
+					src={project.image_thumbnail_url}
 					alt={project.title}
 					width={160}
 					height={90}
