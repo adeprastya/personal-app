@@ -17,8 +17,46 @@ export default function ProjectDetailPage() {
 	});
 	const project = data?.data;
 
-	const handleFocusTech = (e: React.FocusEvent<HTMLElement>) => {
+	const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
 		e.currentTarget.dataset.oldValue = e.currentTarget.textContent?.trim() ?? "";
+	};
+
+	const handleUpdate = async (e: React.FocusEvent<HTMLElement>, field: string) => {
+		const target = e.currentTarget;
+		const newValue = target.textContent?.trim() ?? "";
+		const oldValue = target.dataset.oldValue || newValue;
+
+		if (newValue === oldValue) return;
+
+		const newData = { [field]: newValue };
+		try {
+			validate(UpdateProjectSchema, newData);
+
+			const formData = new FormData();
+			formData.append("data", JSON.stringify(newData));
+
+			const { data } = await axiosFetch({
+				method: "PATCH",
+				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
+			});
+
+			console.log("Update success:", data);
+
+			if (target) {
+				target.dataset.oldValue = newValue;
+			}
+
+			refetch();
+		} catch (err) {
+			console.error(err);
+			if (target) {
+				target.textContent = oldValue;
+			}
+		}
 	};
 
 	const handleUpdateTech = async (e: React.FocusEvent<HTMLElement>, i: number) => {
@@ -31,13 +69,20 @@ export default function ProjectDetailPage() {
 		const newTechs = [...(project?.technologies ?? [])];
 		newTechs[i] = newValue;
 
+		const newData = { technologies: newTechs };
 		try {
-			validate(UpdateProjectSchema, { technologies: [newValue] });
+			validate(UpdateProjectSchema, newData);
+
+			const formData = new FormData();
+			formData.append("data", JSON.stringify(newData));
 
 			const { data } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
-				data: { technologies: newTechs }
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
 			});
 
 			console.log("Update success:", data);
@@ -58,13 +103,20 @@ export default function ProjectDetailPage() {
 	const handleAddTech = async () => {
 		const newTechs = [...(project?.technologies ?? []), "New Technology"];
 
+		const newData = { technologies: newTechs };
 		try {
-			validate(UpdateProjectSchema, { technologies: newTechs });
+			validate(UpdateProjectSchema, newData);
+
+			const formData = new FormData();
+			formData.append("data", JSON.stringify(newData));
 
 			const { data } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
-				data: { technologies: newTechs }
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
 			});
 
 			console.log("Update success:", data);
@@ -79,13 +131,20 @@ export default function ProjectDetailPage() {
 		const newTechs = [...(project?.technologies ?? [])];
 		newTechs.splice(i, 1);
 
+		const newData = { technologies: newTechs };
 		try {
-			validate(UpdateProjectSchema, { technologies: newTechs });
+			validate(UpdateProjectSchema, newData);
+
+			const formData = new FormData();
+			formData.append("data", JSON.stringify(newData));
 
 			const { data } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
-				data: { technologies: newTechs }
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
 			});
 
 			console.log("Update success:", data);
@@ -96,38 +155,142 @@ export default function ProjectDetailPage() {
 		}
 	};
 
-	const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
-		e.currentTarget.dataset.oldValue = e.currentTarget.textContent?.trim() ?? "";
-	};
+	const handleUpdateThumbnail = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files && e.target.files[0]) {
+			const formData = new FormData();
+			formData.append("thumbnail", e.target.files[0]);
 
-	const handleUpdate = async (e: React.FocusEvent<HTMLElement>, field: string) => {
-		const target = e.currentTarget;
-		const newValue = target.textContent?.trim() ?? "";
-		const oldValue = target.dataset.oldValue || newValue;
-
-		if (newValue === oldValue) return;
-
-		try {
-			validate(UpdateProjectSchema, { [field]: newValue });
-
-			const { data } = await axiosFetch({
+			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
-				data: { [field]: newValue }
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
 			});
 
-			console.log("Update success:", data);
+			if (error) {
+				console.error("Error updating thumbnail", error);
+			}
 
-			if (target) {
-				target.dataset.oldValue = newValue;
+			if (data) {
+				console.log("Thumbnail updated successfully", data);
 			}
 
 			refetch();
-		} catch (err) {
-			console.error(err);
-			if (target) {
-				target.textContent = oldValue;
+		}
+	};
+
+	const handleAddPreview = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files) {
+			const formData = new FormData();
+			for (const file of e.target.files) {
+				formData.append("previews", file);
 			}
+
+			const { data, error } = await axiosFetch({
+				method: "PATCH",
+				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
+			});
+
+			if (error) {
+				console.error("Error adding preview", error);
+			}
+
+			if (data) {
+				console.log("Preview added successfully", data);
+			}
+
+			refetch();
+		}
+	};
+
+	const handleUpdatePreview = async (e: React.ChangeEvent<HTMLInputElement>, previewUrl: string) => {
+		if (e.target.files && project) {
+			const formData = new FormData();
+			for (const file of e.target.files) {
+				formData.append("previews", file);
+			}
+
+			const updateDetail = { update: [previewUrl] };
+			formData.append("preview_detail", JSON.stringify(updateDetail));
+
+			const { data, error } = await axiosFetch({
+				method: "PATCH",
+				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
+			});
+
+			if (error) {
+				console.error("Error updating preview", error);
+			}
+
+			if (data) {
+				console.log("Preview updated successfully", data);
+			}
+
+			refetch();
+		}
+	};
+
+	const handleDeletePreview = async (previewUrl: string) => {
+		const formData = new FormData();
+		formData.append("preview_detail", JSON.stringify({ delete: [previewUrl] }));
+
+		const { data, error } = await axiosFetch({
+			method: "PATCH",
+			url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+			data: formData,
+			headers: {
+				"Content-Type": "multipart/form-data"
+			}
+		});
+
+		if (error) {
+			console.error("Error deleting preview", error);
+		}
+
+		if (data) {
+			console.log("Preview deleted successfully", data);
+		}
+
+		refetch();
+	};
+
+	const handleDropPreview = async (e: React.DragEvent<HTMLDivElement>) => {
+		e.preventDefault();
+
+		if (e.dataTransfer.files) {
+			const formData = new FormData();
+			for (const file of e.dataTransfer.files) {
+				formData.append("previews", file);
+			}
+
+			const { data, error } = await axiosFetch({
+				method: "PATCH",
+				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				data: formData,
+				headers: {
+					"Content-Type": "multipart/form-data"
+				}
+			});
+
+			if (error) {
+				console.error("Error adding preview (drop)", error);
+			}
+
+			if (data) {
+				console.log("Preview added successfully (drop)", data);
+			}
+
+			refetch();
 		}
 	};
 
@@ -164,6 +327,23 @@ export default function ProjectDetailPage() {
 							<span className="text-neutral-400">...</span>
 						</div>
 
+						{/* Tagline */}
+						<div className="text-lg flex items-center gap-4">
+							<p
+								contentEditable
+								suppressContentEditableWarning
+								spellCheck={false}
+								onFocus={handleFocus}
+								onBlur={(e) => handleUpdate(e, "tagline")}
+								title={project?.id}
+								className="cursor-pointer"
+							>
+								{project?.tagline}
+							</p>
+
+							<span className="text-neutral-400">...</span>
+						</div>
+
 						{/* Technologies */}
 						<div className="flex items-center gap-2 text-xs tracking-wider">
 							<div className="flex flex-row flex-wrap gap-3">
@@ -173,7 +353,7 @@ export default function ProjectDetailPage() {
 											contentEditable
 											suppressContentEditableWarning
 											spellCheck={false}
-											onFocus={handleFocusTech}
+											onFocus={handleFocus}
 											onBlur={(e) => handleUpdateTech(e, i)}
 											className="cursor-pointer"
 										>
@@ -200,7 +380,7 @@ export default function ProjectDetailPage() {
 					</div>
 
 					{/* Description */}
-					<div className="flex items-center gap-2">
+					<div className="text-neutral-700 flex items-center gap-2">
 						<p
 							contentEditable
 							suppressContentEditableWarning
@@ -251,7 +431,7 @@ export default function ProjectDetailPage() {
 										spellCheck={false}
 										onFocus={handleFocus}
 										onBlur={(e) => handleUpdate(e, "site_url")}
-										className="text-sm text-neutral-400 cursor-pointer"
+										className="text-xs text-neutral-400 cursor-pointer"
 									>
 										Add Site Url
 									</p>
@@ -351,15 +531,83 @@ export default function ProjectDetailPage() {
 						</div>
 					</div>
 
-					{/* Image */}
-					<Image
-						src={project?.image_url || ""}
-						alt={project?.title || ""}
-						width={800}
-						height={300}
-						unoptimized
-						className="w-xl aspect-video object-cover rounded-sm"
-					/>
+					{/* Thumbnail Image */}
+					<div className="relative w-xl rounded-sm border border-neutral-400 aspect-video flex items-center justify-center group">
+						<Image
+							src={project?.image_thumbnail_url || ""}
+							alt={project?.title || ""}
+							width={800}
+							height={450}
+							unoptimized
+							className="size-full aspect-video object-cover rounded-xs"
+						/>
+
+						<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-sm cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+							Click to change Thumbnail
+						</p>
+
+						<input
+							type="file"
+							onChange={handleUpdateThumbnail}
+							accept="image/*"
+							className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
+						/>
+					</div>
+
+					{/* Preview Container and Add Button / Drag and Drop */}
+					<div
+						onDragOver={(e) => e.preventDefault()}
+						onDrop={handleDropPreview}
+						className="relative w-xl p-2 rounded-sm border border-dashed border-neutral-400 grid grid-cols-2 gap-2"
+					>
+						<div className="col-span-2">
+							<p className="text-center text-sm text-neutral-400">Click or Drag n Drop here to add Preview Images</p>
+
+							<input
+								type="file"
+								accept="image/*"
+								multiple
+								onChange={handleAddPreview}
+								className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
+							/>
+						</div>
+
+						{/* Preview Images */}
+						{project?.image_preview_urls.map((preview, i) => (
+							<div
+								key={i}
+								className="relative overflow-clip rounded-xs border border-neutral-400 flex items-center justify-center group"
+							>
+								<Image
+									src={preview}
+									alt={`${project?.title} preview ${i + 1}`}
+									width={400}
+									height={225}
+									unoptimized
+									className="aspect-video object-cover"
+								/>
+
+								<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-xs cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+									Click to change This Preview
+								</p>
+
+								<input
+									type="file"
+									accept="image/*"
+									onChange={(e) => handleUpdatePreview(e, preview)}
+									className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
+								/>
+
+								<button
+									type="button"
+									onClick={() => handleDeletePreview(preview)}
+									className="absolute top-0 right-0 px-2 py-0.5 bg-red-500 text-xs text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+								>
+									x
+								</button>
+							</div>
+						))}
+					</div>
 				</div>
 			)}
 		</main>

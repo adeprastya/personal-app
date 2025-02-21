@@ -98,7 +98,7 @@ paths:
                   type: string
                   format: binary
                   description: File gambar thumbnail.
-                preview:
+                previews:
                   type: array
                   items:
                     type: string
@@ -160,7 +160,7 @@ paths:
                   description: File gambar preview baru (bisa lebih dari satu).
                 preview_detail:
                   type: string
-                  description: String JSON yang mendeskripsikan detail update preview (misal = daftar URL yang akan dihapus atau diperbarui).
+                  description: String JSON yang mendeskripsikan detail update preview { update, delete } (misal = daftar URL yang akan dihapus atau diperbarui dalam bentuk array).
       responses:
         "200":
           description: Proyek berhasil diperbarui.

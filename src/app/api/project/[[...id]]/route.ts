@@ -59,7 +59,7 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 		const reqForm = await req.formData();
 		let reqData = reqForm.get("data") as string;
 		const reqThumbnail = reqForm.get("thumbnail") as File;
-		const reqPreviews = reqForm.getAll("preview") as File[];
+		const reqPreviews = reqForm.getAll("previews") as File[];
 
 		try {
 			reqData = JSON.parse(reqData);
@@ -170,7 +170,7 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 			}
 			validate(UpdateProjectPreviewDetailSchema, reqPreviewDetail);
 		}
-		if (reqPreviews.length > 0) {
+		if (Array.isArray(reqPreviews) && reqPreviews.length > 0) {
 			reqPreviews.forEach((preview) => {
 				validate(ImageFileSchema, {
 					mimetype: preview.type,
@@ -184,7 +184,7 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 			: [];
 
 		// --- Handle Preview Additions ---
-		if (reqPreviewDetail.update.length <= 0 && reqPreviews.length > 0) {
+		if (Array.isArray(reqPreviewDetail.update) && reqPreviewDetail.update.length <= 0 && reqPreviews.length > 0) {
 			if (previewUrls.length + reqPreviews.length > 10) {
 				throw new CustomErrorResponse(400, "Too many preview files to add, max 10 previews per project");
 			}
@@ -218,10 +218,14 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 		}
 
 		// --- Handle Preview Updates ---
-		if (reqPreviewDetail.update.length > 0 && reqPreviewDetail.update.length !== reqPreviews.length) {
+		if (
+			Array.isArray(reqPreviewDetail.update) &&
+			reqPreviewDetail.update.length > 0 &&
+			reqPreviewDetail.update.length !== reqPreviews.length
+		) {
 			throw new CustomErrorResponse(400, "Number of preview files and update list not match");
 		}
-		if (reqPreviewDetail.update.length > 0 && reqPreviews.length > 0) {
+		if (Array.isArray(reqPreviewDetail.update) && reqPreviewDetail.update.length > 0 && reqPreviews.length > 0) {
 			reqPreviewDetail.update.forEach((url) => {
 				if (!previewUrls.includes(url)) {
 					throw new CustomErrorResponse(400, "Invalid preview url in update list");
@@ -253,7 +257,7 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 		}
 
 		// --- Handle Preview Deletions ---
-		if (reqPreviewDetail.delete.length > 0) {
+		if (Array.isArray(reqPreviewDetail.delete) && reqPreviewDetail.delete.length > 0) {
 			if (reqPreviewDetail.delete.length > previewUrls.length) {
 				throw new CustomErrorResponse(400, "Too many preview files to delete");
 			}

@@ -57,14 +57,10 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 		if (image_previews) {
 			const previewsArray = Array.isArray(image_previews) ? image_previews : [image_previews];
 			previewsArray.forEach((file) => {
-				formData.append("preview", file);
+				formData.append("previews", file);
 			});
 		}
 		formData.append("data", JSON.stringify(clearData));
-
-		for (const [key, value] of formData.entries()) {
-			console.log(key, value);
-		}
 
 		const { data, error } = await axiosFetch({
 			method: "POST",
