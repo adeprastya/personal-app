@@ -1,15 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useField } from "formik";
+import clsx from "clsx";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { useFormikField } from "@/hooks/useFormikField";
 
-const STATE = {
-	DEFAULT: "DEFAULT",
-	FOCUSED: "FOCUSED",
-	WARNING: "WARNING",
-	ERROR: "ERROR"
-} as const;
-type FieldState = (typeof STATE)[keyof typeof STATE];
 type FieldProps = React.InputHTMLAttributes<HTMLTextAreaElement> & {
 	name: string;
 	label: string | number;
@@ -22,76 +16,76 @@ export default function TextareaField({
 	placeholder = "Type Here",
 	...props
 }: FieldProps) {
-	const [field, meta] = useField(name);
-	const ref = useRef<HTMLTextAreaElement>(null);
-	const [currentState, setCurrentState] = useState<FieldState>(STATE.DEFAULT);
+	const {
+		field: { value, onChange },
+		meta: { error, touched },
+		isFocused,
+		visualState,
+		handleFocus,
+		handleBlur
+	} = useFormikField(name);
 
-	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => field.onChange(e);
+	const hasValue = !!value;
+	const shouldFloatLabel = hasValue || isFocused;
 
-	const handleFocus = () => setCurrentState(STATE.FOCUSED);
+	const textareaClasses = clsx("transition-colors outline-none w-full px-3 py-1 rounded-sm border border-solid", {
+		"border-blue-500": (visualState === "DEFAULT" || visualState === "FOCUSED") && hasValue,
+		"border-neutral-400": visualState === "DEFAULT" && !hasValue,
+		"border-neutral-950": visualState === "FOCUSED" && !hasValue,
+		"border-red-500": visualState === "ERROR"
+	});
 
-	const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-		setCurrentState(STATE.DEFAULT);
-		field.onBlur(e);
-	};
+	const labelClasses = clsx(
+		"absolute px-1 left-2 transition-all leading-none backdrop-blur-3xl",
+		shouldFloatLabel
+			? clsx("top-0 -translate-y-3/5 font-semibold tracking-wider text-xs", {
+					"text-blue-500": (visualState === "DEFAULT" || visualState === "FOCUSED") && hasValue,
+					"text-neutral-400": visualState === "DEFAULT" && !hasValue,
+					"text-neutral-950": visualState === "FOCUSED" && !hasValue,
+					"text-red-500": visualState === "ERROR"
+			  })
+			: "top-0 translate-y-2/5 font-normal tracking-normal text-base text-neutral-700"
+	);
 
-	const getBorderClass = () => {
-		switch (currentState) {
-			case STATE.DEFAULT:
-				return field.value ? "border-blue-500" : "border-neutral-400";
-			case STATE.FOCUSED:
-				return field.value ? "border-blue-500" : "border-neutral-950";
-			case STATE.WARNING:
-				return "border-yellow-500";
-			case STATE.ERROR:
-				return "border-red-500";
-			default:
-				return "";
+	const placeholderClasses = clsx(
+		"transition-all absolute left-3 top-0 translate-y-2/5 font-normal leading-none text-base text-neutral-500 pointer-events-none",
+		{
+			hidden: hasValue || !isFocused,
+			visible: !hasValue && isFocused
 		}
-	};
+	);
 
 	return (
 		<label htmlFor={name} className="relative">
-			{/* Input */}
 			<textarea
-				ref={ref}
-				rows={4}
 				id={name}
 				name={name}
+				rows={4}
 				required={required}
-				value={field.value}
-				onChange={handleChange}
+				value={value}
+				onChange={onChange}
 				onFocus={handleFocus}
 				onBlur={handleBlur}
-				className={`transition-colors outline-none w-full px-3 py-1 rounded-sm border border-solid ${getBorderClass()}`}
+				aria-invalid={touched && !!error}
+				aria-describedby={touched && error ? `${name}-error` : undefined}
+				className={textareaClasses}
 				{...props}
 			/>
 
-			{/* Label */}
-			<span
-				className={`absolute px-1 left-2 transition-all leading-none bg-white
-          ${
-						field.value || currentState === STATE.FOCUSED
-							? "top-0 -translate-y-3/5 font-semibold tracking-wider text-xs text-neutral-950"
-							: "top-0 translate-y-2/5 font-normal tracking-normal text-base text-neutral-700"
-					}`}
-			>
+			<span className={labelClasses}>
 				{label}
 				{required && " *"}
 			</span>
 
-			{/* Placeholder */}
-			<span
-				className={`transition-all absolute left-3 top-0 translate-y-2/5 font-normal leading-none text-base text-neutral-500 pointer-events-none
-          ${field.value || currentState !== STATE.FOCUSED ? "hidden" : "visible"}
-        `}
-			>
-				{placeholder}
-			</span>
+			<span className={placeholderClasses}>{placeholder}</span>
 
-			{/* Error */}
-			{meta.touched && meta.error && (
-				<p className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs">{meta.error}</p>
+			{touched && error && (
+				<p
+					id={`${name}-error`}
+					className="absolute left-0 bottom-1 translate-y-full text-red-500 text-xs flex gap-0.5 items-center"
+				>
+					<InfoCircledIcon className="size-3 inline" /> {error}
+				</p>
 			)}
 		</label>
 	);

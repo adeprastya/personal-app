@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
+import clsx from "clsx";
 import { useField } from "formik";
+import { Cross2Icon } from "@radix-ui/react-icons";
 
 const STATE = {
 	DEFAULT: "DEFAULT",
 	FOCUSED: "FOCUSED",
-	WARNING: "WARNING",
 	ERROR: "ERROR"
 } as const;
 type InputState = (typeof STATE)[keyof typeof STATE];
@@ -86,8 +87,6 @@ export default function ArrayImageField({ name, label, ...props }: ArrayImageFie
 		switch (currentState) {
 			case STATE.FOCUSED:
 				return images.length > 0 ? "border-blue-500" : "border-neutral-950";
-			case STATE.WARNING:
-				return "border-yellow-500";
 			case STATE.ERROR:
 				return "border-red-500";
 			default:
@@ -109,12 +108,12 @@ export default function ArrayImageField({ name, label, ...props }: ArrayImageFie
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
 				onClick={() => inputRef.current?.click()}
-				className={`overflow-auto p-4 aspect-video rounded-sm border-2 border-dashed ${getBorderClass()}`}
+				className={clsx("overflow-auto p-2 aspect-video rounded-sm border-2 border-dashed cursor-pointer", getBorderClass())}
 			>
-				<div className="w-full grid grid-cols-3 gap-2">
+				<div className="w-full grid grid-cols-2 gap-2">
 					{/* Images Preview */}
 					{previews.map((url, i) => (
-						<div key={i} className="overflow-hidden relative rounded-sm border border-blue-500">
+						<div key={i} className="overflow-hidden relative rounded-xs border border-blue-500">
 							<Image
 								src={url}
 								alt={`Preview ${i}`}
@@ -129,9 +128,9 @@ export default function ArrayImageField({ name, label, ...props }: ArrayImageFie
 									e.stopPropagation();
 									removeImage(i);
 								}}
-								className="cursor-pointer absolute top-2 right-2 rounded-full bg-white px-2 text-lg text-red-500"
+								className="cursor-pointer absolute top-0 right-0 p-1 bg-white/75 text-red-500"
 							>
-								x
+								<Cross2Icon className="size-3" />
 							</button>
 						</div>
 					))}
@@ -154,9 +153,13 @@ export default function ArrayImageField({ name, label, ...props }: ArrayImageFie
 
 				{/* Inner Text */}
 				<span
-					className={`pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center ${
-						previews.length > 3 ? "bg-neutral-900/50 text-neutral-100" : "text-neutral-400"
-					}`}
+					className={clsx(
+						"pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center",
+						{
+							"bg-neutral-900/50 text-neutral-100": previews.length > 3,
+							"text-neutral-400": previews.length <= 3
+						}
+					)}
 				>
 					Select Multiple Images or Drag n Drop
 				</span>
