@@ -8,6 +8,7 @@ import useFetch, { axiosFetch } from "@/hooks/useFetch";
 import { timestampToReadable } from "@/utils/helper";
 import { UpdateProjectSchema } from "@/validations/ProjectSchema";
 import { validate } from "@/validations/validate";
+import { DoubleArrowLeftIcon, Pencil2Icon, Cross2Icon, PlusIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
 
 export default function ProjectDetailPage() {
 	const { id } = useParams();
@@ -295,23 +296,34 @@ export default function ProjectDetailPage() {
 	};
 
 	return (
-		<main className="w-full min-h-dvh flex items-center justify-center">
+		<main className="w-full min-h-dvh bg-neutral-100 text-neutral-800">
 			{/* Back button */}
 			<Link
 				href={"/project"}
-				className="fixed top-3 left-3 w-8 aspect-square rounded-sm bg-neutral-800 text-neutral-200 flex justify-center items-center"
+				className="absolute top-3 left-3 p-2 rounded-sm bg-neutral-800 text-neutral-100 flex gap-2 justify-center items-center"
 			>
-				{"<<"}
+				<DoubleArrowLeftIcon className="size-4" /> <span className="text-xs tracking-wide">Back</span>
 			</Link>
+
+			<p className="absolute top-4 left-22 mb-6 text-xs tracking-wide flex gap-1 items-center">
+				Content with <Pencil2Icon className="size-3" /> icon is editable
+			</p>
 
 			{/* Main Content */}
 			{data && (
-				<div className="p-8 flex flex-col gap-6">
-					<div className="flex flex-col gap-2">
-						<p className="text-xs tracking-wide">{timestampToReadable(project?.created_at as string)}</p>
+				<div className="py-18 px-6 sm:px-16 md:px-32 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<div className="flex flex-col">
+						{/* Created At */}
+						<div>
+							<p className="text-xs text-neutral-500">Created</p>
+
+							<p className="text-sm tracking-wide">{timestampToReadable(project?.created_at as string)}</p>
+						</div>
 
 						{/* Title */}
-						<div className="font-semibold text-4xl flex items-center gap-4">
+						<div className="mt-6">
+							<p className="text-xs text-neutral-500">Title</p>
+
 							<h1
 								contentEditable
 								suppressContentEditableWarning
@@ -319,16 +331,18 @@ export default function ProjectDetailPage() {
 								onFocus={handleFocus}
 								onBlur={(e) => handleUpdate(e, "title")}
 								title={project?.id}
-								className="cursor-pointer"
+								className="relative w-fit font-semibold leading-none text-4xl cursor-pointer"
 							>
 								{project?.title}
-							</h1>
 
-							<span className="text-neutral-400">...</span>
+								<Pencil2Icon className="absolute top-1 -left-5 size-3 text-neutral-400" />
+							</h1>
 						</div>
 
 						{/* Tagline */}
-						<div className="text-lg flex items-center gap-4">
+						<div className="mt-4">
+							<p className="text-xs text-neutral-500">Tagline</p>
+
 							<p
 								contentEditable
 								suppressContentEditableWarning
@@ -336,277 +350,233 @@ export default function ProjectDetailPage() {
 								onFocus={handleFocus}
 								onBlur={(e) => handleUpdate(e, "tagline")}
 								title={project?.id}
-								className="cursor-pointer"
+								className="relative w-fit text-base tracking-wide cursor-pointer"
 							>
 								{project?.tagline}
-							</p>
 
-							<span className="text-neutral-400">...</span>
+								<Pencil2Icon className="absolute top-1 -left-5 size-3 text-neutral-400" />
+							</p>
 						</div>
 
 						{/* Technologies */}
-						<div className="flex items-center gap-2 text-xs tracking-wider">
-							<div className="flex flex-row flex-wrap gap-3">
+						<div className="mt-6">
+							<p className="mb-1 text-xs text-neutral-500">Technologies</p>
+
+							<div className="flex items-center gap-2 text-xs tracking-wider">
 								{project?.technologies.map((tech, i) => (
-									<div key={i} className="px-2 py-0.5 rounded-md bg-neutral-200 flex items-center gap-2">
+									<div key={i} className="px-2 py-1 rounded-lg border border-neutral-400 flex items-center gap-1">
 										<p
 											contentEditable
 											suppressContentEditableWarning
 											spellCheck={false}
 											onFocus={handleFocus}
 											onBlur={(e) => handleUpdateTech(e, i)}
-											className="cursor-pointer"
+											className="relative ms-4 cursor-pointer"
 										>
 											{tech}
+
+											<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
 										</p>
 
 										{project?.technologies.length > 1 && (
-											<button
-												type="button"
-												onClick={() => handleDeleteTech(i)}
-												className="text-neutral-500 cursor-pointer"
-											>
-												x
+											<button type="button" onClick={() => handleDeleteTech(i)} className="ms-1 cursor-pointer">
+												<Cross2Icon className=" text-red-400" />
 											</button>
 										)}
 									</div>
 								))}
+
+								<button
+									type="button"
+									onClick={handleAddTech}
+									className="p-1 rounded-lg border border-blue-400 text-blue-400 cursor-pointer"
+								>
+									<PlusIcon className="size-4" />
+								</button>
 							</div>
-
-							<button type="button" onClick={handleAddTech} className="text-neutral-500 cursor-pointer">
-								+
-							</button>
 						</div>
-					</div>
 
-					{/* Description */}
-					<div className="text-neutral-700 flex items-center gap-2">
-						<p
-							contentEditable
-							suppressContentEditableWarning
-							spellCheck={false}
-							onFocus={handleFocus}
-							onBlur={(e) => handleUpdate(e, "description")}
-							className="block max-w-3xl text-base cursor-pointer"
-						>
-							{project?.description}
-						</p>
+						{/* Description */}
+						<div className="mt-8">
+							<p className="text-xs text-neutral-500">Description</p>
 
-						<span className="text-neutral-500">...</span>
-					</div>
+							<p
+								contentEditable
+								suppressContentEditableWarning
+								spellCheck={false}
+								onFocus={handleFocus}
+								onBlur={(e) => handleUpdate(e, "description")}
+								className="relative text-neutral-700 max-w-3xl text-sm tracking-wide cursor-pointer"
+							>
+								{project?.description}
 
-					<div className="flex flex-col gap-2 tracking-wide">
+								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
+							</p>
+						</div>
+
 						{/* Site Url */}
-						<div className="flex gap-2 items-center">
-							<p className="text-xs">Site: </p>
+						<div className="relative mt-8 flex flex-wrap gap-x-2 items-end">
+							<p className="w-full text-xs text-neutral-500">Live Site</p>
 
-							{project?.site_url ? (
-								<>
-									<p
-										contentEditable
-										suppressContentEditableWarning
-										spellCheck={false}
-										onFocus={handleFocus}
-										onBlur={(e) => handleUpdate(e, "site_url")}
-										className="text-sm cursor-pointer"
-									>
-										{project.site_url}
-									</p>
+							<p
+								contentEditable
+								suppressContentEditableWarning
+								spellCheck={false}
+								onFocus={handleFocus}
+								onBlur={(e) => handleUpdate(e, "site_url")}
+								className={`cursor-pointer ${project?.site_url ? "relative text-sm" : "text-xs text-neutral-400"}`}
+							>
+								{project?.site_url || "Add Site Url"}
 
-									<span className="text-neutral-500">...</span>
+								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
+							</p>
 
-									<a
-										href={project.site_url}
-										target="_blank"
-										className="text-xs text-blue-500 underline underline-offset-2"
-									>
-										Visit
-									</a>
-								</>
-							) : (
-								<>
-									<p
-										contentEditable
-										suppressContentEditableWarning
-										spellCheck={false}
-										onFocus={handleFocus}
-										onBlur={(e) => handleUpdate(e, "site_url")}
-										className="text-xs text-neutral-400 cursor-pointer"
-									>
-										Add Site Url
-									</p>
-
-									<span className="text-neutral-500">...</span>
-								</>
+							{project?.site_url && (
+								<a href={project?.site_url || ""} target="_blank">
+									<ExternalLinkIcon className="size-4 text-blue-500" />
+								</a>
 							)}
 						</div>
 
 						{/* Source Code Url */}
-						<div className="flex gap-2 items-center">
-							<p className="text-xs">Source Code: </p>
+						<div className="relative mt-4 flex flex-wrap gap-x-2 items-end">
+							<p className="w-full text-xs text-neutral-500">Source Code</p>
 
-							{project?.source_code_url ? (
-								<>
-									<p
-										contentEditable
-										suppressContentEditableWarning
-										spellCheck={false}
-										onFocus={handleFocus}
-										onBlur={(e) => handleUpdate(e, "source_code_url")}
-										className="text-sm cursor-pointer"
-									>
-										{project.source_code_url}
-									</p>
+							<p
+								contentEditable
+								suppressContentEditableWarning
+								spellCheck={false}
+								onFocus={handleFocus}
+								onBlur={(e) => handleUpdate(e, "source_code_url")}
+								className={`cursor-pointer ${
+									project?.source_code_url ? "relative text-sm" : "text-xs text-neutral-400"
+								}`}
+							>
+								{project?.source_code_url || "Add Source Code Url"}
 
-									<span className="text-neutral-500">...</span>
+								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
+							</p>
 
-									<a
-										href={project.source_code_url || ""}
-										target="_blank"
-										className="text-xs text-blue-500 underline underline-offset-2"
-									>
-										Visit
-									</a>
-								</>
-							) : (
-								<>
-									<p
-										contentEditable
-										suppressContentEditableWarning
-										spellCheck={false}
-										onFocus={handleFocus}
-										onBlur={(e) => handleUpdate(e, "source_code_url")}
-										className="text-xs text-neutral-400 cursor-pointer"
-									>
-										Add Source Code Url
-									</p>
-
-									<span className="text-neutral-500">...</span>
-								</>
+							{project?.source_code_url && (
+								<a href={project?.source_code_url || ""} target="_blank">
+									<ExternalLinkIcon className="size-4 text-blue-500" />
+								</a>
 							)}
 						</div>
 
 						{/* Demo Url */}
-						<div className="flex gap-2 items-center">
-							<p className="text-xs">Demo: </p>
-							{project?.demo_url ? (
-								<>
-									<p
-										contentEditable
-										suppressContentEditableWarning
-										spellCheck={false}
-										onFocus={handleFocus}
-										onBlur={(e) => handleUpdate(e, "demo_url")}
-										className="text-sm cursor-pointer"
-									>
-										{project.demo_url}
-									</p>
+						<div className="relative mt-4 flex flex-wrap gap-x-2 items-end">
+							<p className="w-full text-xs text-neutral-500">Demo Video</p>
 
-									<span className="text-neutral-500">...</span>
+							<p
+								contentEditable
+								suppressContentEditableWarning
+								spellCheck={false}
+								onFocus={handleFocus}
+								onBlur={(e) => handleUpdate(e, "demo_url")}
+								className={`cursor-pointer ${project?.demo_url ? "relative text-sm" : "text-xs text-neutral-400"}`}
+							>
+								{project?.demo_url || "Add Demo Url"}
 
-									<a
-										href={project.demo_url || ""}
-										target="_blank"
-										className="text-xs text-blue-500 underline underline-offset-2"
-									>
-										Visit
-									</a>
-								</>
-							) : (
-								<>
-									<p
-										contentEditable
-										suppressContentEditableWarning
-										spellCheck={false}
-										onFocus={handleFocus}
-										onBlur={(e) => handleUpdate(e, "demo_url")}
-										className="text-xs text-neutral-400 cursor-pointer"
-									>
-										Add Demo Url
-									</p>
+								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
+							</p>
 
-									<span className="text-neutral-500">...</span>
-								</>
+							{project?.demo_url && (
+								<a href={project?.demo_url || ""} target="_blank">
+									<ExternalLinkIcon className="size-4 text-blue-500" />
+								</a>
 							)}
 						</div>
 					</div>
 
 					{/* Thumbnail Image */}
-					<div className="relative w-xl rounded-sm border border-neutral-400 aspect-video flex items-center justify-center group">
-						<Image
-							src={project?.image_thumbnail_url || ""}
-							alt={project?.title || ""}
-							width={800}
-							height={450}
-							unoptimized
-							className="size-full aspect-video object-cover rounded-xs"
-						/>
+					<div className="flex flex-col">
+						<div>
+							<p className="text-xs text-neutral-500">Thumbnail</p>
 
-						<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-sm cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-							Click to change Thumbnail
-						</p>
-
-						<input
-							type="file"
-							onChange={handleUpdateThumbnail}
-							accept="image/*"
-							className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
-						/>
-					</div>
-
-					{/* Preview Container and Add Button / Drag and Drop */}
-					<div
-						onDragOver={(e) => e.preventDefault()}
-						onDrop={handleDropPreview}
-						className="relative w-xl p-2 rounded-sm border border-dashed border-neutral-400 grid grid-cols-2 gap-2"
-					>
-						<div className="col-span-2">
-							<p className="text-center text-sm text-neutral-400">Click or Drag n Drop here to add Preview Images</p>
-
-							<input
-								type="file"
-								accept="image/*"
-								multiple
-								onChange={handleAddPreview}
-								className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
-							/>
-						</div>
-
-						{/* Preview Images */}
-						{project?.image_preview_urls.map((preview, i) => (
-							<div
-								key={i}
-								className="relative overflow-clip rounded-xs border border-neutral-400 flex items-center justify-center group"
-							>
+							<div className="overflow-clip relative w-full aspect-video rounded-sm border border-neutral-400 flex items-center justify-center group">
 								<Image
-									src={preview}
-									alt={`${project?.title} preview ${i + 1}`}
-									width={400}
-									height={225}
+									src={project?.image_thumbnail_url || ""}
+									alt={project?.title || ""}
+									width={800}
+									height={450}
 									unoptimized
-									className="aspect-video object-cover"
+									className="size-full aspect-video object-cover rounded-xs"
 								/>
 
-								<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-xs cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-									Click to change This Preview
+								<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-sm cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+									Click to change Thumbnail
 								</p>
 
 								<input
 									type="file"
+									onChange={handleUpdateThumbnail}
 									accept="image/*"
-									onChange={(e) => handleUpdatePreview(e, preview)}
 									className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
 								/>
-
-								<button
-									type="button"
-									onClick={() => handleDeletePreview(preview)}
-									className="absolute top-0 right-0 px-2 py-0.5 bg-red-500 text-xs text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-								>
-									x
-								</button>
 							</div>
-						))}
+						</div>
+
+						{/* Preview Container and Add Button / Drag and Drop */}
+						<div className="mt-6">
+							<p className="text-xs text-neutral-500">Previews</p>
+
+							<div
+								onDragOver={(e) => e.preventDefault()}
+								onDrop={handleDropPreview}
+								className="relative w-full p-2 rounded-sm border border-dashed border-neutral-400 grid grid-cols-2 gap-2"
+							>
+								<div className="col-span-2">
+									<p className="text-center text-sm text-neutral-400">
+										Click or Drag n Drop here to add Preview Images
+									</p>
+
+									<input
+										type="file"
+										accept="image/*"
+										multiple
+										onChange={handleAddPreview}
+										className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
+									/>
+								</div>
+
+								{/* Preview Images */}
+								{project?.image_preview_urls.map((preview, i) => (
+									<div
+										key={i}
+										className="relative overflow-clip rounded-xs border border-neutral-400 flex items-center justify-center group"
+									>
+										<Image
+											src={preview}
+											alt={`${project?.title} preview ${i + 1}`}
+											width={400}
+											height={225}
+											unoptimized
+											className="aspect-video object-cover"
+										/>
+
+										<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-xs cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+											Click to change This Preview
+										</p>
+
+										<input
+											type="file"
+											accept="image/*"
+											onChange={(e) => handleUpdatePreview(e, preview)}
+											className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
+										/>
+
+										<button
+											type="button"
+											onClick={() => handleDeletePreview(preview)}
+											className="absolute top-0 right-0 p-1 bg-neutral-100/75 text-xs text-red-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+										>
+											<Cross2Icon className="size-5" />
+										</button>
+									</div>
+								))}
+							</div>
+						</div>
 					</div>
 				</div>
 			)}

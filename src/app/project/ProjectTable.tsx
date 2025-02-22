@@ -1,8 +1,9 @@
-import type { Project } from "@/types/Project";
-import { ErrorResponse } from "@/types/ApiResponse";
+import type { MinimalProject } from "@/types/Project";
+import type { ErrorResponse } from "@/types/ApiResponse";
 import Image from "next/image";
 import Link from "next/link";
 import { axiosFetch } from "@/hooks/useFetch";
+import { TrashIcon } from "@radix-ui/react-icons";
 
 export default function ProjectTable({
 	projects,
@@ -10,7 +11,7 @@ export default function ProjectTable({
 	error,
 	refetch
 }: {
-	projects: Array<Project> | undefined;
+	projects: Array<MinimalProject> | undefined;
 	loading: boolean;
 	error: ErrorResponse | null;
 	refetch: () => void;
@@ -22,8 +23,8 @@ export default function ProjectTable({
 					<tr>
 						<td className="px-4 py-2">Image</td>
 						<td className="px-4 py-2">Title</td>
+						<td className="px-4 py-2">Tagline</td>
 						<td className="px-4 py-2">Created</td>
-						<td className="px-4 py-2">URL</td>
 						<td className="px-4 py-2">Actions</td>
 					</tr>
 				</thead>
@@ -49,7 +50,7 @@ export default function ProjectTable({
 	);
 }
 
-function ProjectRow({ project, refetch }: { project: Project; refetch: () => void }) {
+function ProjectRow({ project, refetch }: { project: MinimalProject; refetch: () => void }) {
 	const handleDelete = async () => {
 		if (confirm("Are you sure you want to delete this project?")) {
 			const { data, error } = await axiosFetch({
@@ -69,7 +70,7 @@ function ProjectRow({ project, refetch }: { project: Project; refetch: () => voi
 	};
 
 	return (
-		<tr className="hover:bg-neutral-100">
+		<tr className="hover:bg-neutral-200">
 			{/* Image */}
 			<td className="px-4 py-2">
 				<Image
@@ -92,47 +93,11 @@ function ProjectRow({ project, refetch }: { project: Project; refetch: () => voi
 				</Link>
 			</td>
 
+			{/* Tagline */}
+			<td className="px-4 py-2">{project.tagline}</td>
+
 			{/* Created */}
 			<td className="px-4 py-2 text-sm">{project.created_at}</td>
-
-			{/* URL */}
-			<td className="px-4 py-2">
-				{/* Site URL */}
-				{project.site_url && (
-					<a
-						target="_blank"
-						href={project.site_url}
-						title={project.site_url}
-						className="me-3 underline underline-offset-2 text-sm text-blue-500"
-					>
-						Live Site
-					</a>
-				)}
-
-				{/* Source Code URL */}
-				{project.source_code_url && (
-					<a
-						target="_blank"
-						href={project.source_code_url}
-						title={project.source_code_url}
-						className="me-3 underline underline-offset-2 text-sm text-blue-500"
-					>
-						Source Code
-					</a>
-				)}
-
-				{/* Demo URL */}
-				{project.demo_url && (
-					<a
-						target="_blank"
-						href={project.demo_url}
-						title={project.demo_url}
-						className="me-3 underline underline-offset-2 text-sm text-blue-500"
-					>
-						Demo
-					</a>
-				)}
-			</td>
 
 			{/* Action */}
 			<td className="px-4 py-2">
@@ -140,9 +105,9 @@ function ProjectRow({ project, refetch }: { project: Project; refetch: () => voi
 				<button
 					type="button"
 					onClick={handleDelete}
-					className="px-2 py-0.5 rounded-xs bg-red-500 tracking-wider text-xs text-white cursor-pointer"
+					className="p-2 rounded-sm border border-red-500 text-red-500 hover:bg-red-500 hover:text-neutral-50 cursor-pointer transition-colors"
 				>
-					Delete
+					<TrashIcon className="size-4" />
 				</button>
 			</td>
 		</tr>
@@ -165,11 +130,6 @@ function ProjectSkeleton() {
 			{/* Created */}
 			<td className="px-4 py-2">
 				<div className="w-30 h-5 rounded-lg bg-neutral-300 animate-pulse" />
-			</td>
-
-			{/* URL */}
-			<td className="px-4 py-2">
-				<div className="w-50 h-5 rounded-lg bg-neutral-300 animate-pulse" />
 			</td>
 
 			{/* Action */}

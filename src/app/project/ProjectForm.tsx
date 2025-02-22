@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useRef } from "react";
+import type { Project } from "@/types/Project";
 import InputField from "@/components/shared/InputField";
 import TextareaField from "@/components/shared/TextareaField";
 import ImageInputField from "@/components/shared/ImageInputField";
 import ArrayTextField from "@/components/shared/ArrayTextField";
 import ArrayImageField from "@/components/shared/ArrayImageField";
 import { axiosFetch } from "@/hooks/useFetch";
+import { useState, useRef } from "react";
 import { Formik, Form } from "formik";
 import { validate } from "@/validations/formikValidate";
 import { CreateProjectSchema } from "@/validations/ProjectSchema";
 import { filterEmptyArrayIndex, filterEmptyObjectFields } from "@/utils/helper";
-import { Project } from "@/types/Project";
+import { ChevronUpIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 
 type ProjectPayload = Omit<Project, "id" | "created_at" | "image_thumbnail_url" | "image_preview_urls"> & {
 	image_thumbnail: File | null;
@@ -86,13 +87,14 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 			{/* Expand/Collapse Button */}
 			<button
 				type="button"
-				className={`cursor-pointer w-full py-2 px-4 font-medium tracking-wide flex justify-between ${
+				className={`cursor-pointer w-full py-2 px-4 font-medium tracking-wide flex justify-between items-center ${
 					expandedForm ? "border-b border-neutral-600" : "border-b-0"
 				}`}
 				onClick={() => setExpandedForm((prev) => !prev)}
 			>
 				<span>Add New Project</span>
-				<span>{expandedForm ? "/\\" : "\\/"}</span>
+
+				<span>{expandedForm ? <ChevronUpIcon className="size-6" /> : <ChevronDownIcon className="size-6" />}</span>
 			</button>
 
 			{/* Form */}
@@ -156,7 +158,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 							<button
 								type="reset"
 								onClick={() => resetForm()}
-								className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-neutral-950 bg-neutral-100 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-2 focus:outline-neutral-300 transition-all"
+								className="cursor-pointer w-fit h-8 px-5 rounded-sm border border-neutral-400 tracking-wider text-neutral-950 bg-neutral-100 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-2 focus:outline-neutral-300 transition-all"
 							>
 								Clear
 							</button>

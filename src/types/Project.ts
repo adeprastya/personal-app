@@ -14,3 +14,5 @@ export type Project = {
 	image_thumbnail_url: string;
 	image_preview_urls: Array<string>;
 };
+
+export type MinimalProject = Pick<Project, "id" | "created_at" | "title" | "tagline" | "image_thumbnail_url">;
