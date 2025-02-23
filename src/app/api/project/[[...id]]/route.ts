@@ -61,6 +61,10 @@ export const POST = ErrorHandler(async (req: NextRequest) => {
 		const reqThumbnail = reqForm.get("thumbnail") as File;
 		const reqPreviews = reqForm.getAll("previews") as File[];
 
+		if (reqPreviews.length > 6) {
+			throw new CustomErrorResponse(400, "Too many preview files to add, max 6 previews per project");
+		}
+
 		try {
 			reqData = JSON.parse(reqData);
 		} catch (err) {
@@ -185,8 +189,8 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 
 		// --- Handle Preview Additions ---
 		if (Array.isArray(reqPreviewDetail.update) && reqPreviewDetail.update.length <= 0 && reqPreviews.length > 0) {
-			if (previewUrls.length + reqPreviews.length > 10) {
-				throw new CustomErrorResponse(400, "Too many preview files to add, max 10 previews per project");
+			if (previewUrls.length + reqPreviews.length > 6) {
+				throw new CustomErrorResponse(400, "Too many preview files to add, max 6 previews per project");
 			}
 
 			const getNextPreviewIndex = (urls: string[]): number => {
@@ -202,7 +206,7 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 			};
 
 			for (const file of reqPreviews) {
-				if (previewUrls.length < 10) {
+				if (previewUrls.length < 7) {
 					const newPreviewBuffer = Buffer.from(await file.arrayBuffer());
 					const newPreviewFile = { mimetype: file.type, buffer: newPreviewBuffer };
 					const newNumber = getNextPreviewIndex(previewUrls);

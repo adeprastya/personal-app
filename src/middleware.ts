@@ -9,7 +9,7 @@ const publicApi: Record<string, string[]> = {
 	"/api": ["GET"],
 	"/api/project": ["GET"]
 };
-const publicPage: string[] = ["/"];
+const publicPage: string[] = ["/", "/generate/portfolio"];
 const staticAssetsPattern =
 	/^\/_next\/static\/|^\/_next\/image\/|^\/_next\/fonts\/|^\/favicon.ico|^\/robots.txt|^\/manifest.json/;
 
@@ -27,7 +27,7 @@ export default auth(async (req) => {
 		return NextResponse.next();
 	}
 
-	// Public API
+	// Public API (static route)
 	const publicApiMethods = publicApi[pathname];
 	if (publicApiMethods && publicApiMethods.includes(method)) {
 		const response = NextResponse.next();
@@ -37,6 +37,19 @@ export default auth(async (req) => {
 		response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
 		return response;
+	}
+
+	// Public API (dynamic route)
+	for (const [path, meth] of Object.entries(publicApi)) {
+		if (pathname.startsWith(path) && method && meth.includes(method)) {
+			const response = NextResponse.next();
+
+			response.headers.set("Access-Control-Allow-Origin", "*");
+			response.headers.set("Access-Control-Allow-Methods", method);
+			response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+			return response;
+		}
 	}
 
 	// Internal API

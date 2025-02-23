@@ -362,7 +362,7 @@ export default function ProjectDetailPage() {
 						<div className="mt-6">
 							<p className="mb-1 text-xs text-neutral-500">Technologies</p>
 
-							<div className="flex items-center gap-2 text-xs tracking-wider">
+							<div className="flex flex-wrap items-center gap-2 text-xs tracking-wider">
 								{project?.technologies.map((tech, i) => (
 									<div key={i} className="px-2 py-1 rounded-lg border border-neutral-400 flex items-center gap-1">
 										<p
@@ -415,7 +415,7 @@ export default function ProjectDetailPage() {
 						</div>
 
 						{/* Site Url */}
-						<div className="relative mt-8 flex flex-wrap gap-x-2 items-end">
+						<div className="mt-8 flex flex-wrap gap-x-2 items-end">
 							<p className="w-full text-xs text-neutral-500">Live Site</p>
 
 							<p
@@ -424,7 +424,7 @@ export default function ProjectDetailPage() {
 								spellCheck={false}
 								onFocus={handleFocus}
 								onBlur={(e) => handleUpdate(e, "site_url")}
-								className={`cursor-pointer ${project?.site_url ? "relative text-sm" : "text-xs text-neutral-400"}`}
+								className={`cursor-pointer relative ${project?.site_url ? "text-sm" : "text-xs text-neutral-400"}`}
 							>
 								{project?.site_url || "Add Site Url"}
 
@@ -439,7 +439,7 @@ export default function ProjectDetailPage() {
 						</div>
 
 						{/* Source Code Url */}
-						<div className="relative mt-4 flex flex-wrap gap-x-2 items-end">
+						<div className="mt-4 flex flex-wrap gap-x-2 items-end">
 							<p className="w-full text-xs text-neutral-500">Source Code</p>
 
 							<p
@@ -448,8 +448,8 @@ export default function ProjectDetailPage() {
 								spellCheck={false}
 								onFocus={handleFocus}
 								onBlur={(e) => handleUpdate(e, "source_code_url")}
-								className={`cursor-pointer ${
-									project?.source_code_url ? "relative text-sm" : "text-xs text-neutral-400"
+								className={`cursor-pointer relative ${
+									project?.source_code_url ? "text-sm" : "text-xs text-neutral-400"
 								}`}
 							>
 								{project?.source_code_url || "Add Source Code Url"}
@@ -465,7 +465,7 @@ export default function ProjectDetailPage() {
 						</div>
 
 						{/* Demo Url */}
-						<div className="relative mt-4 flex flex-wrap gap-x-2 items-end">
+						<div className="mt-4 flex flex-wrap gap-x-2 items-end">
 							<p className="w-full text-xs text-neutral-500">Demo Video</p>
 
 							<p
@@ -474,7 +474,7 @@ export default function ProjectDetailPage() {
 								spellCheck={false}
 								onFocus={handleFocus}
 								onBlur={(e) => handleUpdate(e, "demo_url")}
-								className={`cursor-pointer ${project?.demo_url ? "relative text-sm" : "text-xs text-neutral-400"}`}
+								className={`cursor-pointer relative ${project?.demo_url ? "text-sm" : "text-xs text-neutral-400"}`}
 							>
 								{project?.demo_url || "Add Demo Url"}
 
@@ -489,8 +489,8 @@ export default function ProjectDetailPage() {
 						</div>
 					</div>
 
-					{/* Thumbnail Image */}
 					<div className="flex flex-col">
+						{/* Thumbnail Image */}
 						<div>
 							<p className="text-xs text-neutral-500">Thumbnail</p>
 

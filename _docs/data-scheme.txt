@@ -22,7 +22,7 @@ projects:
   demo_url: String(uri) | undefined
 
   image_thumbnail_url: String(uri) [max 10mb]
-  image_preview_urls: Array<String(uri)>(min 1, max 10) [max 10mb]
+  image_preview_urls: Array<String(uri)>(min 1, max 6) [max 10mb]
 }
 
 ### Storage Bucket

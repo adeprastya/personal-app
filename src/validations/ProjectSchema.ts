@@ -113,11 +113,11 @@ export const UpdateProjectSchema = Joi.object({
 });
 
 export const UpdateProjectPreviewDetailSchema = Joi.object({
-	delete: Joi.array().items(Joi.string().uri()).max(10).optional().messages({
-		"array.max": "At most 10 preview urls are allowed"
+	delete: Joi.array().items(Joi.string().uri()).max(6).optional().messages({
+		"array.max": "At most 6 preview urls are allowed"
 	}),
-	update: Joi.array().items(Joi.string().uri()).max(10).optional().messages({
-		"array.max": "At most 10 preview urls are allowed"
+	update: Joi.array().items(Joi.string().uri()).max(6).optional().messages({
+		"array.max": "At most 6 preview urls are allowed"
 	})
 }).messages({
 	"object.base": "Invalid data provided",
