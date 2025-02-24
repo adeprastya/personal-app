@@ -65,7 +65,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 
 		const { data, error } = await axiosFetch({
 			method: "POST",
-			url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project`,
+			url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project`,
 			headers: { "Content-Type": "multipart/form-data" },
 			data: formData
 		});

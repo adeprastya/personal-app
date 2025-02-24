@@ -4,7 +4,7 @@ import type { MinimalProject, Project } from "@/types/Project";
 import PortfolioTemplate from "./PortfolioTemplate";
 
 export default async function PortfolioPage() {
-	const res = await fetch(process.env.NEXT_PUBLIC_BASE_URL + "/api/project", { method: "GET" });
+	const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/project`, { method: "GET" });
 	const minProjects = await res.json();
 
 	const projects: Project[] = await Promise.all(

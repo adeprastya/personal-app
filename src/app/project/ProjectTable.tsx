@@ -55,7 +55,7 @@ function ProjectRow({ project, refetch }: { project: MinimalProject; refetch: ()
 		if (confirm("Are you sure you want to delete this project?")) {
 			const { data, error } = await axiosFetch({
 				method: "DELETE",
-				url: process.env.NEXT_PUBLIC_BACKEND_URL + `/project/${project.id}`
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${project.id}`
 			});
 
 			if (error) {

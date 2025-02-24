@@ -8,7 +8,7 @@ import useFetch from "@/hooks/useFetch";
 export default function ProjectPage() {
 	const { data, loading, error, refetch } = useFetch<MinimalProject[]>({
 		method: "GET",
-		url: process.env.NEXT_PUBLIC_BACKEND_URL + "/project"
+		url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project`
 	});
 
 	return (

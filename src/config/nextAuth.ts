@@ -6,7 +6,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 	callbacks: {
 		async signIn({ user }) {
-			const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user`, {
+			const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user`, {
 				method: "POST",
 				headers: {
 					"x-internal-secret": `${process.env.AUTH_SECRET}`,

@@ -14,7 +14,7 @@ export default function ProjectDetailPage() {
 	const { id } = useParams();
 	const { data, refetch } = useFetch<Project>({
 		method: "GET",
-		url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`
+		url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`
 	});
 	const project = data?.data;
 
@@ -38,7 +38,7 @@ export default function ProjectDetailPage() {
 
 			const { data } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
@@ -79,7 +79,7 @@ export default function ProjectDetailPage() {
 
 			const { data } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
@@ -113,7 +113,7 @@ export default function ProjectDetailPage() {
 
 			const { data } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
@@ -141,7 +141,7 @@ export default function ProjectDetailPage() {
 
 			const { data } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
@@ -163,7 +163,7 @@ export default function ProjectDetailPage() {
 
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
@@ -191,7 +191,7 @@ export default function ProjectDetailPage() {
 
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
@@ -222,7 +222,7 @@ export default function ProjectDetailPage() {
 
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
@@ -247,7 +247,7 @@ export default function ProjectDetailPage() {
 
 		const { data, error } = await axiosFetch({
 			method: "PATCH",
-			url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+			url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 			data: formData,
 			headers: {
 				"Content-Type": "multipart/form-data"
@@ -276,7 +276,7 @@ export default function ProjectDetailPage() {
 
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/project/${id}`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: {
 					"Content-Type": "multipart/form-data"
