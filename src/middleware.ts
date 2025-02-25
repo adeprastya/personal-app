@@ -1,76 +1,93 @@
-import { auth } from "@/config/nextAuth";
-import { errorResponse } from "./utils/response";
 import { NextResponse } from "next/server";
+import { auth } from "@/config/nextAuth";
+import { errorResponse, successResponse } from "./utils/response";
 
+/**
+ * Include all APIs and Pages
+ * Exclude: /api/auth, /_next/static, /_next/image, /favicon.ico, /robots.txt, /manifest.json
+ */
+export const config = {
+	matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|robots.txt|manifest.json).*)"]
+};
+
+/**
+ * Bypassed Endpoint
+ * Dynamic Path / Slug must be wrapped in square brackets !!
+ */
 const internalApi: Record<string, string[]> = {
 	"/api/user": ["POST"]
 };
 const publicApi: Record<string, string[]> = {
 	"/api": ["GET"],
-	"/api/project": ["GET"]
+	"/api/project": ["GET"],
+	"/api/project/[project-id]": ["GET"]
 };
 const publicPage: string[] = ["/", "/generate/portfolio"];
-const staticAssetsPattern =
-	/^\/_next\/static\/|^\/_next\/image\/|^\/_next\/fonts\/|^\/favicon.ico|^\/robots.txt|^\/manifest.json/;
 
+/**
+ * Helper
+ */
+const getRegexPattern = (() => {
+	const regexCache: Record<string, RegExp> = {};
+
+	return (pattern: string): RegExp => {
+		if (regexCache[pattern]) return regexCache[pattern];
+
+		const regex = new RegExp(`^${pattern.replace(/\[.*?\]/g, "([^/]+)")}$`);
+		regexCache[pattern] = regex;
+		return regex;
+	};
+})();
+
+const testDynamicPath = (pattern: string, reqPath: string): boolean => {
+	const regex = getRegexPattern(pattern);
+	return regex.test(reqPath);
+};
+
+const matchDynamicRoute = (routePatterns: Record<string, string[]>, reqPath: string): string[] | null => {
+	for (const [pattern, methods] of Object.entries(routePatterns)) {
+		if (testDynamicPath(pattern, reqPath)) return methods;
+	}
+	return null;
+};
+
+/**
+ * Custom Middleware
+ * Next.js Middleware + Next Auth
+ */
 export default auth(async (req) => {
-	const pathname = req.nextUrl.pathname;
-	const method = req.method;
+	const {
+		nextUrl: { pathname },
+		method,
+		auth
+	} = req;
 
-	// Static Assets
-	if (staticAssetsPattern.test(pathname)) {
-		return NextResponse.next();
+	if (method === "OPTIONS") {
+		return successResponse(200, "OK");
 	}
 
 	// Public Page
-	if (publicPage.includes(pathname)) {
+	const isPublicPage = publicPage.some((pattern) => testDynamicPath(pattern, pathname));
+	if (isPublicPage) {
 		return NextResponse.next();
 	}
 
-	// Public API (static route)
-	const publicApiMethods = publicApi[pathname];
+	// Public API
+	const publicApiMethods = publicApi[pathname] || matchDynamicRoute(publicApi, pathname);
 	if (publicApiMethods && publicApiMethods.includes(method)) {
-		const response = NextResponse.next();
-
-		response.headers.set("Access-Control-Allow-Origin", "*");
-		response.headers.set("Access-Control-Allow-Methods", method);
-		response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-		return response;
-	}
-
-	// Public API (dynamic route)
-	for (const [path, meth] of Object.entries(publicApi)) {
-		if (pathname.startsWith(path) && method && meth.includes(method)) {
-			const response = NextResponse.next();
-
-			response.headers.set("Access-Control-Allow-Origin", "*");
-			response.headers.set("Access-Control-Allow-Methods", method);
-			response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-			return response;
-		}
+		return NextResponse.next();
 	}
 
 	// Internal API
-	const internalApiMethods = internalApi[pathname];
+	const internalApiMethods = internalApi[pathname] || matchDynamicRoute(internalApi, pathname);
 	if (internalApiMethods && internalApiMethods.includes(method)) {
 		return NextResponse.next();
 	}
 
-	// next-auth
-	if (pathname.startsWith("/api/auth")) {
+	// Protected Route
+	if (auth) {
 		return NextResponse.next();
 	}
 
-	const isAuth = await auth();
-	if (!isAuth) {
-		return errorResponse(401, "Unauthorized or Unauthenticated");
-	}
-
-	return NextResponse.next();
+	return errorResponse(401, "Unauthorized or Unauthenticated");
 });
-
-export const config = {
-	matcher: ["/:path*", "/api/:path*"]
-};
