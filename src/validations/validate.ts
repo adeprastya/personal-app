@@ -1,5 +1,5 @@
 import type Joi from "joi";
-import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
+import { CustomErrorResponse } from "@/lib/CustomErrorResponse";
 
 export const validate = (schema: Joi.Schema, data: unknown) => {
 	const { error } = schema.validate(data, { abortEarly: false });

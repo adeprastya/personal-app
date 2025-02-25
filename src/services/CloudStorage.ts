@@ -1,6 +1,6 @@
 import { Bucket, Storage } from "@google-cloud/storage";
 import { GCP_projectId, GCP_bucketName, GCP_serviceAccountCredentials } from "@/config/GCP";
-import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
+import { CustomErrorResponse } from "@/lib/CustomErrorResponse";
 
 const storage = new Storage({
 	projectId: GCP_projectId,

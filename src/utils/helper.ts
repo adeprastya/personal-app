@@ -32,7 +32,7 @@ export const filterEmptyObjectFields = (obj: object) => {
 
 export const filterEmptyArrayIndex = (arr: Array<unknown>) => {
 	return arr.filter((item) => {
-		if (item !== null || item !== undefined || item !== "") {
+		if (item) {
 			return item;
 		}
 	});

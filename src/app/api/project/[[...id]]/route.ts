@@ -1,10 +1,8 @@
 import type { Project } from "@/types/Project";
 import { NextRequest } from "next/server";
-import ProjectCollection from "@/models/Project";
 import { filterEmptyObjectFields, generateId, timestampToReadable } from "@/utils/helper";
-import { successResponse } from "@/utils/response";
 import { CloudStorageInstance } from "@/services/CloudStorage";
-import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
+import ProjectCollection from "@/models/Project";
 import {
 	CreateProjectSchema,
 	ImageFileSchema,
@@ -13,7 +11,9 @@ import {
 	UpdateProjectPreviewDetailSchema
 } from "@/validations/ProjectSchema";
 import { validate } from "@/validations/validate";
-import { ErrorHandler } from "@/middlewares/ErrorHandler";
+import { CustomErrorResponse } from "@/lib/CustomErrorResponse";
+import { ErrorHandler } from "@/lib/ErrorHandler";
+import { successResponse } from "@/lib/response";
 
 type Params = { params: Promise<{ id: string }> };
 

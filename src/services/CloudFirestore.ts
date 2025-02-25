@@ -1,6 +1,6 @@
 import { Firestore } from "@google-cloud/firestore";
 import { GCP_projectId, GCP_serviceAccountCredentials } from "@/config/GCP";
-import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
+import { CustomErrorResponse } from "@/lib/CustomErrorResponse";
 
 const firestore = new Firestore({
 	projectId: GCP_projectId,

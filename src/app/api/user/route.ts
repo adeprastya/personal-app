@@ -1,6 +1,6 @@
-import { successResponse, errorResponse } from "@/utils/response";
-import UserCollection from "@/models/User";
 import { NextRequest } from "next/server";
+import { successResponse, errorResponse } from "@/lib/response";
+import UserCollection from "@/models/User";
 
 // INTERNAL API / Check User Registration
 export const POST = async (req: NextRequest) => {

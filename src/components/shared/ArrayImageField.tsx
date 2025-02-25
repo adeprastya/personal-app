@@ -108,7 +108,10 @@ export default function ArrayImageField({ name, label, ...props }: ArrayImageFie
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
 				onClick={() => inputRef.current?.click()}
-				className={clsx("overflow-auto p-2 aspect-video rounded-sm border-2 border-dashed cursor-pointer", getBorderClass())}
+				className={clsx(
+					"overflow-auto p-2 aspect-video rounded-sm border-2 border-dashed cursor-pointer",
+					getBorderClass()
+				)}
 			>
 				<div className="w-full grid grid-cols-2 gap-2">
 					{/* Images Preview */}
@@ -156,8 +159,8 @@ export default function ArrayImageField({ name, label, ...props }: ArrayImageFie
 					className={clsx(
 						"pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center",
 						{
-							"bg-neutral-900/75 text-neutral-100": previews.length > 3,
-							"text-neutral-400": previews.length <= 3
+							"bg-neutral-900/50 text-neutral-100": previews.length > 0,
+							"text-neutral-400": previews.length <= 0
 						}
 					)}
 				>

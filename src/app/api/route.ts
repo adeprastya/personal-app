@@ -1,4 +1,4 @@
-import { successResponse } from "@/utils/response";
+import { successResponse } from "@/lib/response";
 import { timestampToReadable } from "@/utils/helper";
 
 // PUBLIC API / Check Server Health

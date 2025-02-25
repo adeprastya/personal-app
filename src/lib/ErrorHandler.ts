@@ -1,5 +1,5 @@
-import { errorResponse } from "@/utils/response";
-import { CustomErrorResponse } from "@/utils/CustomErrorResponse";
+import { errorResponse } from "@/lib/response";
+import { CustomErrorResponse } from "@/lib/CustomErrorResponse";
 import { NextRequest, NextResponse } from "next/server";
 
 export function ErrorHandler<P>(handler: (req: NextRequest, params: P) => Promise<NextResponse>) {

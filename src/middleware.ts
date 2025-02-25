@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/config/nextAuth";
-import { errorResponse, successResponse } from "./utils/response";
+import { errorResponse, successResponse } from "@/lib/response";
 
 /**
  * Include all APIs and Pages

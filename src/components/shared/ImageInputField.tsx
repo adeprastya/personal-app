@@ -147,8 +147,8 @@ export default function ImageInputField({ name, label, ...props }: ImageInputFie
 				{/* Inner Text */}
 				<span
 					className={clsx(
-						"pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center text-neutral-100",
-						{ "bg-neutral-900/75": previewURL }
+						"pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center",
+						{ "bg-neutral-900/50 text-neutral-100": previewURL, "text-neutral-100": !previewURL }
 					)}
 				>
 					{previewURL ? "Click to Remove" : "Select Image or Drag n Drop"}
