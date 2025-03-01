@@ -1,177 +1,169 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
-import { useField } from "formik";
+import { FormikFieldProps, useFormikField, CustomErrorText } from "@/hooks/useFormikField";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { Modal } from "@/components/shared/Modal";
 import { Cross2Icon } from "@radix-ui/react-icons";
 
-const STATE = {
-	DEFAULT: "DEFAULT",
-	FOCUSED: "FOCUSED",
-	ERROR: "ERROR"
-} as const;
-type InputState = (typeof STATE)[keyof typeof STATE];
+export default function ArrayImageField({ name, label, ...props }: FormikFieldProps) {
+	const {
+		field: { value, onChange },
+		meta: { error, touched },
+		focused: { get: isFocused },
+		handle,
+		visualState
+	} = useFormikField(name);
 
-type ArrayImageFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
-	name: string;
-	label: string | number;
-};
-
-export default function ArrayImageField({ name, label, ...props }: ArrayImageFieldProps) {
-	const inputRef = useRef<HTMLInputElement>(null);
-	const [currentState, setCurrentState] = useState<InputState>(STATE.DEFAULT);
-	const [previews, setPreviews] = useState<string[]>([]);
-	const [field, meta, helpers] = useField(name);
-
-	const images: File[] = useMemo(() => (Array.isArray(field.value) ? field.value : []), [field.value]);
+	const [previewURLs, setPreviewURLs] = useState<string[]>([]);
+	const [selectedPreview, setSelectedPreview] = useState<string>("");
 
 	useEffect(() => {
-		const urls = images.map((file) => URL.createObjectURL(file));
-		setPreviews(urls);
-		return () => {
-			urls.forEach((url) => URL.revokeObjectURL(url));
-		};
-	}, [images]);
+		const urls = value.map((file: File) => URL.createObjectURL(file));
+		setPreviewURLs(urls);
+		return () => urls.forEach((url: string) => URL.revokeObjectURL(url));
+	}, [value]);
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const { dragActive, dragHandler } = useDragAndDrop<HTMLLabelElement>({
+		onDropFiles: (files) => {
+			if (files.length) {
+				onChange({ target: { name, value: [...value, ...files] } });
+			}
+		}
+	});
+
+	const handleClear = (index: number) => {
+		const newImages = value.filter((_: File, i: number) => i !== index);
+		onChange({ target: { name, value: newImages } });
+	};
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files) {
 			const newFiles = Array.from(e.target.files);
-			helpers.setValue([...images, ...newFiles]);
+			onChange({ target: { name, value: [...value, ...newFiles] } });
 			e.target.value = "";
 		}
 	};
 
-	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+	const handleClick = (e: React.MouseEvent, url: string) => {
 		e.preventDefault();
-		e.stopPropagation();
-		setCurrentState(STATE.FOCUSED);
+		setSelectedPreview(url);
 	};
 
-	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setCurrentState(STATE.FOCUSED);
-	};
-
-	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setCurrentState(STATE.DEFAULT);
-	};
-
-	const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		if (e.dataTransfer.files) {
-			const newFiles = Array.from(e.dataTransfer.files);
-			helpers.setValue([...images, ...newFiles]);
-		}
-		setCurrentState(STATE.DEFAULT);
-	};
-
-	const removeImage = (index: number) => {
-		const newImages = images.filter((_, i) => i !== index);
-		helpers.setValue(newImages);
-	};
-
-	const handleFocus = () => {
-		setCurrentState(STATE.FOCUSED);
-	};
-
-	const handleBlur = () => {
-		setCurrentState(STATE.DEFAULT);
-	};
-
-	const getBorderClass = () => {
-		switch (currentState) {
-			case STATE.FOCUSED:
-				return images.length > 0 ? "border-blue-500" : "border-neutral-950";
-			case STATE.ERROR:
-				return "border-red-500";
-			default:
-				return images.length > 0 ? "border-blue-500" : "border-neutral-400";
-		}
-	};
+	const borderClass =
+		touched && error
+			? "border-red-300"
+			: dragActive || isFocused
+			? value.length > 0
+				? "border-blue-300"
+				: "border-neutral-600"
+			: value.length > 0
+			? "border-blue-300"
+			: "border-neutral-400";
 
 	return (
-		<div className="relative space-y-1">
-			{/* Label */}
-			<label htmlFor={name} className="block text-sm text-gray-600">
+		<div className="space-y-1">
+			{/* Field Label */}
+			<label htmlFor={name} className="text-sm text-neutral-800">
 				{label}
 			</label>
 
-			{/* Container Input & Preview */}
-			<div
-				onDragOver={handleDragOver}
-				onDragEnter={handleDragEnter}
-				onDragLeave={handleDragLeave}
-				onDrop={handleDrop}
-				onClick={() => inputRef.current?.click()}
+			{/* Dropzone */}
+			<label
+				onDragOver={dragHandler.dragOver}
+				onDragEnter={dragHandler.dragEnter}
+				onDragLeave={dragHandler.dragLeave}
+				onDrop={dragHandler.drop}
+				onClick={(e) => {
+					if (e.target !== e.currentTarget) e.stopPropagation();
+				}}
+				htmlFor={name}
 				className={clsx(
-					"overflow-auto p-2 aspect-video rounded-sm border-2 border-dashed cursor-pointer",
-					getBorderClass()
+					"relative size-full aspect-video p-2 rounded-sm border-2 border-dashed cursor-pointer flex flex-col items-center",
+					borderClass
 				)}
 			>
-				<div className="w-full grid grid-cols-2 gap-2">
-					{/* Images Preview */}
-					{previews.map((url, i) => (
-						<div key={i} className="overflow-hidden relative rounded-xs border border-blue-500">
-							<Image
-								src={url}
-								alt={`Preview ${i}`}
-								width={100}
-								height={100}
-								className="w-full aspect-video object-cover object-center"
-								unoptimized
-							/>
-							<button
-								type="button"
-								onClick={(e) => {
-									e.stopPropagation();
-									removeImage(i);
-								}}
-								className="cursor-pointer absolute top-0 right-0 p-1 bg-white/75 text-red-500"
-							>
-								<Cross2Icon className="size-3" />
-							</button>
-						</div>
-					))}
-				</div>
+				{/* Placeholder */}
+				<span className="pointer-events-none px-10 text-center text-neutral-400">
+					Select Multiple Images or Drag n Drop
+				</span>
 
-				{/* Input File */}
+				{/* Hidden File Input */}
 				<input
-					ref={inputRef}
 					id={name}
 					name={name}
 					type="file"
 					accept="image/*"
 					multiple
-					onChange={handleChange}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					className="pointer-events-none absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+					onChange={handleFileChange}
+					onFocus={handle.focus}
+					onBlur={handle.blur}
+					className="absolute size-0 opacity-0"
 					{...props}
 				/>
 
-				{/* Inner Text */}
-				<span
-					className={clsx(
-						"pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center",
-						{
-							"bg-neutral-900/50 text-neutral-100": previews.length > 0,
-							"text-neutral-400": previews.length <= 0
-						}
-					)}
-				>
-					Select Multiple Images or Drag n Drop
-				</span>
+				{/* Images Preview */}
+				<div className="grid grid-cols-2 gap-2 h-fit overflow-auto">
+					{previewURLs.map((url, i) => (
+						<ImagePreview key={i} url={url} i={i} handleClear={handleClear} handleClick={handleClick} />
+					))}
+				</div>
 
-				{/* Error Message */}
-				{meta.touched && meta.error && (
-					<p className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs">{meta.error}</p>
-				)}
-			</div>
+				{/* Error Text */}
+				<CustomErrorText name={name} error={error} visualState={visualState} />
+			</label>
+
+			{selectedPreview && (
+				<Modal closeHandler={() => setSelectedPreview("")}>
+					<Image
+						src={selectedPreview}
+						alt="Thumbnail Preview"
+						width={1000}
+						height={1000}
+						unoptimized
+						className="size-auto object-contain object-center"
+					/>
+				</Modal>
+			)}
+		</div>
+	);
+}
+
+function ImagePreview({
+	url,
+	i,
+	handleClear,
+	handleClick
+}: {
+	url: string;
+	i: number;
+	handleClear: (i: number) => void;
+	handleClick: (e: React.MouseEvent, url: string) => void;
+}) {
+	return (
+		<div className="relative" onClick={(e) => handleClick(e, url)}>
+			<Image
+				src={url}
+				alt="Preview"
+				width={200}
+				height={100}
+				className="size-full aspect-video object-cover object-center"
+				unoptimized
+			/>
+
+			<button
+				type="button"
+				className="z-10 absolute top-0 right-0 p-1 bg-neutral-50/75 text-red-400 cursor-pointer"
+				onClick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					handleClear(i);
+				}}
+			>
+				<Cross2Icon className="size-4" />
+			</button>
 		</div>
 	);
 }

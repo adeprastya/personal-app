@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import clsx from "clsx";
-import { useFormikField } from "@/hooks/useFormikField";
-import { Cross2Icon, InfoCircledIcon } from "@radix-ui/react-icons";
-
-type ArrayTextFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
-	name: string;
-	label: string | number;
-};
+import {
+	FormikFieldProps,
+	useFormikField,
+	CustomLabel,
+	CustomPlaceholder,
+	CustomErrorText
+} from "@/hooks/useFormikField";
+import { Cross2Icon } from "@radix-ui/react-icons";
 
 export default function ArrayTextField({
 	name,
@@ -16,142 +17,105 @@ export default function ArrayTextField({
 	required = false,
 	placeholder = "Click Enter to Add",
 	...props
-}: ArrayTextFieldProps) {
+}: FormikFieldProps) {
+	const [inputValue, setInputValue] = useState("");
+	const [tags, setTags] = useState<string[]>([]);
+
 	const {
 		field: { value },
 		meta: { error, touched },
-		isFocused,
+		helpers,
+		handle,
 		visualState,
-		handleFocus,
-		handleBlur,
-		helpers
+		className,
+		hasValue,
+		alreadyChanged,
+		focused
 	} = useFormikField(name);
 
-	const [inputValue, setInputValue] = useState("");
-	const ref = useRef<HTMLInputElement>(null);
-
-	const tags = Array.isArray(value)
-		? value.filter((tag: string) => tag.trim() !== "")
-		: typeof value === "string"
-		? value
-				.split(",")
-				.map((tag: string) => tag.trim())
-				.filter((tag: string) => tag !== "")
-		: [];
-
-	const addTag = () => {
-		const newTag = inputValue.trim();
-		if (newTag && !tags.includes(newTag)) {
-			const newTags = [...tags, newTag];
-			if (Array.isArray(value)) {
-				helpers.setValue(newTags);
-			} else {
-				helpers.setValue(newTags.join(", "));
-			}
+	useEffect(() => {
+		if (inputValue) {
+			hasValue.set(true);
+			alreadyChanged.set(true);
 		}
-		setInputValue("");
-	};
 
-	const removeTag = (index: number) => {
-		const newTags = tags.filter((_, i) => i !== index);
-		if (Array.isArray(value)) {
-			helpers.setValue(newTags);
-		} else {
-			helpers.setValue(newTags.join(", "));
+		if (!inputValue && tags.length <= 0) hasValue.set(false);
+	}, [inputValue, hasValue, alreadyChanged, tags]);
+
+	useEffect(() => {
+		helpers.setValue(tags);
+	}, [tags, helpers]);
+
+	useEffect(() => {
+		if (value.length !== tags.length) {
+			setTags(value);
+			setInputValue("");
 		}
-	};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [value]);
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
 			e.preventDefault();
-			addTag();
+			const trimmedValue = inputValue.trim();
+			if (!trimmedValue) return;
+			setTags((prevTags) => [...prevTags, trimmedValue]);
+			setInputValue("");
 		}
 	};
 
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setInputValue(e.target.value);
-	};
-
-	const borderClass = (() => {
-		switch (visualState) {
-			case "DEFAULT":
-				return inputValue ? "border-blue-500" : "border-neutral-400";
-			case "FOCUSED":
-				return "border-neutral-950";
-			case "ERROR":
-				return "border-red-500";
-			default:
-				return "";
-		}
-	})();
+	const removeTag = (index: number) => setTags((tags) => tags.filter((_, i) => i !== index));
 
 	return (
 		<>
-			<label htmlFor={name} className="relative">
-				<input
-					ref={ref}
-					id={name}
-					name={name}
-					type="text"
-					value={inputValue}
-					onChange={handleInputChange}
-					onKeyDown={handleKeyDown}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					aria-invalid={touched && !!error}
-					aria-describedby={touched && error ? `${name}-error` : undefined}
-					className={clsx(
-						"transition-colors outline-none w-full h-8 px-3 py-1 rounded-sm border border-solid",
-						borderClass
-					)}
-					{...props}
-				/>
-
-				<span
-					className={clsx(
-						"absolute px-1 left-2 transition-all leading-none backdrop-blur-3xl",
-						inputValue || isFocused
-							? "top-0 -translate-y-3/5 font-semibold tracking-wider text-xs text-neutral-950"
-							: "top-1/2 -translate-y-1/2 font-normal tracking-normal text-base text-neutral-700"
-					)}
-				>
-					{label}
-					{required && " *"}
-				</span>
-
-				<span
-					className={clsx(
-						"absolute left-3 top-1/2 -translate-y-1/2 font-normal leading-none text-base text-neutral-500 pointer-events-none",
-						{
-							hidden: inputValue || !isFocused,
-							visible: !inputValue && isFocused
-						}
-					)}
-				>
-					{placeholder}
-				</span>
-
-				{touched && error && (
-					<p
-						id={`${name}-error`}
-						className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs flex gap-0.5 items-center"
-					>
-						<InfoCircledIcon className="size-3 inline" /> {error}
-					</p>
+			<label
+				htmlFor={name}
+				className={clsx(
+					className.inputBorder,
+					clsx("cursor-text relative min-h-8 h-auto ps-3 flex flex-row flex-wrap gap-y-1 items-center", {
+						"pt-2": tags.length > 0
+					})
 				)}
+			>
+				<div className="w-full min-h-6 flex flex-wrap gap-2">
+					{tags.length > 0 && tags.map((tag, i) => <Tag key={i} tag={tag} index={i} removeTag={removeTag} />)}
+
+					<input
+						id={name}
+						name={name}
+						type="text"
+						value={inputValue}
+						onChange={(e) => setInputValue(e.target.value)}
+						onKeyDown={handleKeyDown}
+						onFocus={handle.focus}
+						onBlur={handle.blur}
+						aria-invalid={touched && !!error}
+						aria-describedby={touched && error ? `${name}-error` : undefined}
+						className="grow min-w-40 h-6 border-0 outline-none leading-0"
+						{...props}
+					/>
+				</div>
+
+				<CustomLabel label={label} required={required} className={clsx(className.floatLabel, "bg-neutral-100")} />
+				<CustomPlaceholder
+					placeholder={placeholder}
+					className={clsx(className.placeholder, {
+						hidden: inputValue.trim() !== "" || !focused.get
+					})}
+				/>
+				<CustomErrorText name={name} error={error} visualState={visualState} />
 			</label>
-
-			<div className="flex flex-wrap gap-2">
-				{tags.map((tag: string, index: number) => (
-					<div key={index} className="px-2 py-1 rounded-lg border border-blue-500 flex gap-2 items-center">
-						<span className="tracking-wider text-xs">{tag}</span>
-
-						<button type="button" onClick={() => removeTag(index)} className="text-red-500 cursor-pointer">
-							<Cross2Icon className="size-3" />
-						</button>
-					</div>
-				))}
-			</div>
 		</>
+	);
+}
+
+function Tag({ tag, index, removeTag }: { tag: string; index: number; removeTag: (index: number) => void }) {
+	return (
+		<div className="h-5 px-2 rounded-sm border border-blue-300 flex gap-2 items-center">
+			<span className="font-semibold tracking-wide leading-0 text-xs">{tag}</span>
+			<button type="button" onClick={() => removeTag(index)} className="text-red-400 cursor-pointer">
+				<Cross2Icon className="size-3" />
+			</button>
+		</div>
 	);
 }

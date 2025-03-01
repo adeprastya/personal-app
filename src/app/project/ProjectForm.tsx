@@ -134,7 +134,7 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 								<InputField label="Demo URL" name="demo_url" placeholder="https://example.com" />
 							</div>
 
-							<div className="flex flex-col gap-6">
+							<div className="flex flex-col gap-4 sm:gap-10">
 								{/* Thumbnail Image Upload */}
 								<ImageInputField label="Thumbnail Image" name="image_thumbnail" />
 

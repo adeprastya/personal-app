@@ -1,164 +1,151 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
-import { useFormikField } from "@/hooks/useFormikField";
+import { FormikFieldProps, useFormikField, CustomErrorText } from "@/hooks/useFormikField";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { Modal } from "@/components/shared/Modal";
+import { Cross2Icon } from "@radix-ui/react-icons";
 
-const STATE = {
-	DEFAULT: "DEFAULT",
-	FOCUSED: "FOCUSED",
-	ERROR: "ERROR"
-} as const;
-type InputState = (typeof STATE)[keyof typeof STATE];
-
-type ImageInputFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
-	name: string;
-	label: string | number;
-};
-
-export default function ImageInputField({ name, label, ...props }: ImageInputFieldProps) {
-	const inputRef = useRef<HTMLInputElement>(null);
-	const { field, meta, visualState, handleFocus, handleBlur } = useFormikField(name);
-	const [dragState, setDragState] = useState<InputState>(STATE.DEFAULT);
+export default function ImageInputField({ name, label, ...props }: FormikFieldProps) {
+	const {
+		field: { value, onChange },
+		meta: { error, touched },
+		focused: { get: isFocused },
+		handle,
+		visualState
+	} = useFormikField(name);
 	const [previewURL, setPreviewURL] = useState<string | null>(null);
+	const [showPreview, setShowPreview] = useState(false);
 
 	useEffect(() => {
-		if (field.value instanceof File) {
-			const url = URL.createObjectURL(field.value);
+		if (value instanceof File) {
+			const url = URL.createObjectURL(value);
 			setPreviewURL(url);
 			return () => URL.revokeObjectURL(url);
-		} else {
-			setPreviewURL(null);
 		}
-	}, [field.value]);
+		setPreviewURL(null);
+	}, [value]);
 
-	const currentState = dragState !== STATE.DEFAULT ? dragState : visualState;
-
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (e.target.files && e.target.files[0]) {
-			const file = e.target.files[0];
-			field.onChange({ target: { name, value: file } });
-		}
-	};
-
-	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setDragState(STATE.FOCUSED);
-	};
-	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setDragState(STATE.FOCUSED);
-	};
-	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		setDragState(STATE.DEFAULT);
-	};
-	const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		e.stopPropagation();
-		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-			const file = e.dataTransfer.files[0];
-			field.onChange({ target: { name, value: file } });
-		}
-		setDragState(STATE.DEFAULT);
-	};
-
-	const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
-		if (previewURL) {
-			e.preventDefault();
-			if (inputRef.current) {
-				inputRef.current.value = "";
+	const { dragActive, dragHandler } = useDragAndDrop<HTMLLabelElement>({
+		onDropFiles: (files) => {
+			if (files[0]) {
+				onChange({ target: { name, value: files[0] } });
 			}
-			setPreviewURL(null);
-			field.onChange({ target: { name, value: "" } });
+		}
+	});
+
+	const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
+		e.stopPropagation();
+		e.preventDefault();
+		onChange({ target: { name, value: null } });
+	};
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+		e.target.files && e.target.files[0] && onChange({ target: { name, value: e.target.files[0] } });
+
+	const handleClick = (e: React.MouseEvent<HTMLLabelElement>) => {
+		if (value) {
+			e.stopPropagation();
+			e.preventDefault();
+			setShowPreview(true);
 		}
 	};
 
-	const mergedHandleFocus = () => {
-		handleFocus();
-		setDragState(STATE.FOCUSED);
-	};
-	const mergedHandleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-		handleBlur(e);
-		setDragState(STATE.DEFAULT);
-	};
-
-	const borderClass = (() => {
-		switch (currentState) {
-			case STATE.DEFAULT:
-				return field.value ? "border-blue-500" : "border-neutral-400";
-			case STATE.FOCUSED:
-				return field.value ? "border-blue-500" : "border-neutral-950";
-			case STATE.ERROR:
-				return "border-red-500";
-			default:
-				return "";
-		}
-	})();
+	const borderClass =
+		touched && error
+			? "border-red-300"
+			: dragActive || isFocused
+			? value
+				? "border-blue-300"
+				: "border-neutral-600"
+			: value
+			? "border-blue-300"
+			: "border-neutral-400";
 
 	return (
 		<div className="space-y-1">
-			{/* Label */}
-			<label htmlFor={name} className="block text-sm text-neutral-600">
+			{/* Field Label */}
+			<label htmlFor={name} className="text-sm text-neutral-800">
 				{label}
 			</label>
 
-			{/* Container Preview */}
-			<div
-				onDragOver={handleDragOver}
-				onDragEnter={handleDragEnter}
-				onDragLeave={handleDragLeave}
-				onDrop={handleDrop}
-				className={clsx("overflow-hidden relative aspect-video rounded-sm border-2 border-dashed", borderClass)}
+			{/* Dropzone */}
+			<label
+				onDragOver={dragHandler.dragOver}
+				onDragEnter={dragHandler.dragEnter}
+				onDragLeave={dragHandler.dragLeave}
+				onDrop={dragHandler.drop}
+				onClick={handleClick}
+				htmlFor={name}
+				className={clsx(
+					"overflow-hidden relative block size-full aspect-video rounded-sm border-2 border-dashed cursor-pointer",
+					borderClass
+				)}
 			>
-				{/* Image Preview */}
-				{previewURL && (
-					<Image
-						src={previewURL}
-						alt="Preview"
-						width={200}
-						height={100}
-						className="w-full h-full object-cover object-center"
-						unoptimized
-					/>
+				{/* Placeholder */}
+				{!previewURL && (
+					<span className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center text-neutral-400">
+						Select Image or Drag n Drop
+					</span>
 				)}
 
-				{/* Input File */}
+				{/* Hidden File Input */}
 				<input
-					ref={inputRef}
+					key={value ? value.name : ""}
 					id={name}
 					name={name}
 					type="file"
 					accept="image/*"
-					onChange={handleImageChange}
-					onClick={handleClick}
-					onFocus={mergedHandleFocus}
-					onBlur={mergedHandleBlur}
-					aria-invalid={meta.touched && !!meta.error}
-					aria-describedby={meta.touched && meta.error ? `${name}-error` : undefined}
-					className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+					onChange={handleFileChange}
+					onFocus={handle.focus}
+					onBlur={handle.blur}
+					aria-invalid={touched && !!error}
+					aria-describedby={touched && error ? `${name}-error` : undefined}
+					className="absolute size-0 opacity-0"
 					{...props}
 				/>
 
-				{/* Inner Text */}
-				<span
-					className={clsx(
-						"pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-center",
-						{ "bg-neutral-900/50 text-neutral-100": previewURL, "text-neutral-100": !previewURL }
-					)}
-				>
-					{previewURL ? "Click to Remove" : "Select Image or Drag n Drop"}
-				</span>
+				{previewURL && (
+					<>
+						{/* Image Preview */}
+						<Image
+							src={previewURL}
+							alt="Preview"
+							width={200}
+							height={100}
+							className="size-full object-cover object-center"
+							unoptimized
+						/>
 
-				{/* Error Message */}
-				{meta.touched && meta.error && (
-					<p className="absolute left-0 bottom-0 translate-y-full text-red-500 text-xs">{meta.error}</p>
+						{/* Clear Button */}
+						<button
+							type="button"
+							className="z-10 absolute top-0 right-0 p-2 bg-neutral-50/75 text-red-400 cursor-pointer"
+							onClick={handleClear}
+						>
+							<Cross2Icon className="size-5" />
+						</button>
+					</>
 				)}
-			</div>
+
+				{/* Error Text */}
+				<CustomErrorText name={name} error={error} visualState={visualState} />
+			</label>
+
+			{showPreview && (
+				<Modal closeHandler={() => setShowPreview(false)}>
+					<Image
+						src={previewURL || ""}
+						alt="Thumbnail Preview"
+						width={1000}
+						height={1000}
+						unoptimized
+						className="size-auto object-contain object-center"
+					/>
+				</Modal>
+			)}
 		</div>
 	);
 }
