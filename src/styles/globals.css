@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./button.css";
 
 :root {
 	@apply text-neutral-800 bg-neutral-100;

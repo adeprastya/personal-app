@@ -113,7 +113,12 @@ function Tag({ tag, index, removeTag }: { tag: string; index: number; removeTag:
 	return (
 		<div className="h-5 px-2 rounded-sm border border-blue-300 flex gap-2 items-center">
 			<span className="font-semibold tracking-wide leading-0 text-xs">{tag}</span>
-			<button type="button" onClick={() => removeTag(index)} className="text-red-400 cursor-pointer">
+
+			<button
+				type="button"
+				onClick={() => removeTag(index)}
+				className="p-0.5 rounded-full text-red-400 cursor-pointer hover:bg-red-200 hover:text-red-500"
+			>
 				<Cross2Icon className="size-3" />
 			</button>
 		</div>

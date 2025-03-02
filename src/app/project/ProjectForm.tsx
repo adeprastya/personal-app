@@ -146,20 +146,12 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 						{/* Submit & Reset Buttons */}
 						<div className="pb-4 pt-6 flex gap-6">
 							{/* Submit */}
-							<button
-								type="submit"
-								disabled={isSubmitting}
-								className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-white bg-neutral-900 hover:bg-neutral-700 focus:bg-neutral-700 focus:outline-2 focus:outline-neutral-900 transition-all"
-							>
+							<button type="submit" disabled={isSubmitting} className="btn-primary">
 								{isSubmitting ? "Submitting..." : "Submit"}
 							</button>
 
 							{/* Reset */}
-							<button
-								type="reset"
-								onClick={() => resetForm()}
-								className="cursor-pointer w-fit h-8 px-5 rounded-sm border border-neutral-400 tracking-wider text-neutral-950 bg-neutral-100 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-2 focus:outline-neutral-300 transition-all"
-							>
+							<button type="reset" onClick={() => resetForm()} className="btn-secondary">
 								Clear
 							</button>
 						</div>

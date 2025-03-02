@@ -107,7 +107,7 @@ export function useFormikField(name: string) {
 	);
 
 	const placeholderClass = clsx(
-		"pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-normal leading-none text-base text-neutral-500",
+		"pointer-events-none absolute left-[14px] top-1/2 -translate-y-1/2 font-normal leading-none text-base text-neutral-500",
 		{
 			hidden: isHasValue || !isFocused
 		}

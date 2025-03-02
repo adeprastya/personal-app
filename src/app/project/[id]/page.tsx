@@ -298,14 +298,11 @@ export default function ProjectDetailPage() {
 	return (
 		<main className="w-full min-h-dvh bg-neutral-100 text-neutral-800">
 			{/* Back button */}
-			<Link
-				href={"/project"}
-				className="absolute top-3 left-3 p-2 rounded-sm bg-neutral-800 text-neutral-100 flex gap-2 justify-center items-center"
-			>
+			<Link href={"/project"} className="absolute top-3 left-3 btn-primary flex gap-3 items-center">
 				<DoubleArrowLeftIcon className="size-4" /> <span className="text-xs tracking-wide">Back</span>
 			</Link>
 
-			<p className="absolute top-4 left-22 mb-6 text-xs tracking-wide flex gap-1 items-center">
+			<p className="absolute top-4 left-28 mb-6 text-xs tracking-wide flex gap-1 items-center">
 				Content with <Pencil2Icon className="size-3" /> icon is editable
 			</p>
 
@@ -364,7 +361,7 @@ export default function ProjectDetailPage() {
 
 							<div className="flex flex-wrap items-center gap-2 text-xs tracking-wider">
 								{project?.technologies.map((tech, i) => (
-									<div key={i} className="px-2 py-1 rounded-lg border border-neutral-400 flex items-center gap-1">
+									<div key={i} className="px-2 py-1 rounded-lg border border-neutral-400 flex items-center gap-2">
 										<p
 											contentEditable
 											suppressContentEditableWarning
@@ -379,8 +376,12 @@ export default function ProjectDetailPage() {
 										</p>
 
 										{project?.technologies.length > 1 && (
-											<button type="button" onClick={() => handleDeleteTech(i)} className="ms-1 cursor-pointer">
-												<Cross2Icon className=" text-red-400" />
+											<button
+												type="button"
+												onClick={() => handleDeleteTech(i)}
+												className="p-0.5 rounded-full text-red-400 cursor-pointer hover:bg-red-200 hover:text-red-500"
+											>
+												<Cross2Icon className="size-3" />
 											</button>
 										)}
 									</div>
@@ -389,9 +390,9 @@ export default function ProjectDetailPage() {
 								<button
 									type="button"
 									onClick={handleAddTech}
-									className="p-1 rounded-lg border border-blue-400 text-blue-400 cursor-pointer"
+									className="btn-secondary-icon btn-secondary-blue size-6 !p-1"
 								>
-									<PlusIcon className="size-4" />
+									<PlusIcon />
 								</button>
 							</div>
 						</div>
@@ -524,7 +525,7 @@ export default function ProjectDetailPage() {
 							<div
 								onDragOver={(e) => e.preventDefault()}
 								onDrop={handleDropPreview}
-								className="relative w-full p-2 rounded-sm border border-dashed border-neutral-400 grid grid-cols-2 gap-2"
+								className="relative w-full p-2 rounded-sm border-2 border-dashed border-neutral-400 grid grid-cols-2 gap-2"
 							>
 								<div className="col-span-2">
 									<p className="text-center text-sm text-neutral-400">

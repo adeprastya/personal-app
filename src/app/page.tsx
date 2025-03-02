@@ -12,10 +12,7 @@ export default async function LandingPage() {
 					await signIn("google", { redirectTo: "/project" });
 				}}
 			>
-				<button
-					type="submit"
-					className="cursor-pointer w-fit h-8 px-5 rounded-sm tracking-wider text-neutral-100 bg-neutral-800 hover:bg-neutral-700 focus:bg-neutral-700 focus:outline-2 focus:outline-neutral-900 transition-all"
-				>
+				<button type="submit" className="btn-primary">
 					Signin with Google
 				</button>
 			</form>

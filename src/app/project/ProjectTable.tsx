@@ -102,11 +102,7 @@ function ProjectRow({ project, refetch }: { project: MinimalProject; refetch: ()
 			{/* Action */}
 			<td className="px-4 py-2">
 				{/* Delete */}
-				<button
-					type="button"
-					onClick={handleDelete}
-					className="p-2 rounded-sm border border-red-500 text-red-500 hover:bg-red-500 hover:text-neutral-50 cursor-pointer transition-colors"
-				>
+				<button type="button" onClick={handleDelete} className="btn-secondary-icon btn-secondary-red">
 					<TrashIcon className="size-4" />
 				</button>
 			</td>
