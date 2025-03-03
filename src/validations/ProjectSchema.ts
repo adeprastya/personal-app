@@ -98,13 +98,13 @@ export const UpdateProjectSchema = Joi.object({
 		.messages({
 			"array.max": "At most 20 technologies are allowed"
 		}),
-	site_url: Joi.string().uri().optional().messages({
+	site_url: Joi.string().uri().optional().allow("").messages({
 		"string.uri": "Site URL must be a valid URI"
 	}),
-	source_code_url: Joi.string().uri().optional().messages({
+	source_code_url: Joi.string().uri().optional().allow("").messages({
 		"string.uri": "Source code URL must be a valid URI"
 	}),
-	demo_url: Joi.string().uri().optional().messages({
+	demo_url: Joi.string().uri().optional().allow("").messages({
 		"string.uri": "Demo URL must be a valid URI"
 	})
 }).messages({

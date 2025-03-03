@@ -286,8 +286,7 @@ export const PATCH = ErrorHandler(async (req: NextRequest, { params }: Params) =
 
 		reqData.image_preview_urls = previewUrls;
 
-		const cleanData = filterEmptyObjectFields(reqData);
-		await ProjectCollection.update(id, cleanData as Partial<Project>);
+		await ProjectCollection.update(id, reqData as Partial<Project>);
 
 		return successResponse(200, "Project updated successfully");
 	} catch (err) {

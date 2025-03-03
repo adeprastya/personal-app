@@ -1,14 +1,15 @@
 "use client";
 
 import type { Project } from "@/types/Project";
-import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { EditableText } from "@/components/shared/EditableText";
 import useFetch, { axiosFetch } from "@/hooks/useFetch";
 import { timestampToReadable } from "@/utils/helper";
 import { UpdateProjectSchema } from "@/validations/ProjectSchema";
 import { validate } from "@/validations/validate";
-import { DoubleArrowLeftIcon, Pencil2Icon, Cross2Icon, PlusIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
+import { DoubleArrowLeftIcon, Cross2Icon, PlusIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
 
 export default function ProjectDetailPage() {
 	const { id } = useParams();
@@ -18,167 +19,65 @@ export default function ProjectDetailPage() {
 	});
 	const project = data?.data;
 
-	const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
-		e.currentTarget.dataset.oldValue = e.currentTarget.textContent?.trim() ?? "";
-	};
-
-	const handleUpdate = async (e: React.FocusEvent<HTMLElement>, field: string) => {
-		const target = e.currentTarget;
-		const newValue = target.textContent?.trim() ?? "";
-		const oldValue = target.dataset.oldValue || newValue;
-
-		if (newValue === oldValue) return;
-
-		const newData = { [field]: newValue };
+	const updateProjectData = async (newData: object) => {
 		try {
 			validate(UpdateProjectSchema, newData);
 
 			const formData = new FormData();
 			formData.append("data", JSON.stringify(newData));
 
-			const { data } = await axiosFetch({
+			const response = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
+				headers: { "Content-Type": "multipart/form-data" }
 			});
 
-			console.log("Update success:", data);
-
-			if (target) {
-				target.dataset.oldValue = newValue;
-			}
-
+			console.log("Update success:", response.data);
 			refetch();
 		} catch (err) {
-			console.error(err);
-			if (target) {
-				target.textContent = oldValue;
-			}
+			console.error("Update error: ", err);
+			throw new Error("Failed updating project");
 		}
 	};
 
-	const handleUpdateTech = async (e: React.FocusEvent<HTMLElement>, i: number) => {
-		const target = e.currentTarget;
-		const newValue = target.textContent?.trim() ?? "";
-		const oldValue = target.dataset.oldValue;
+	const handleUpdateField = async (newValue: string, field: string) => {
+		await updateProjectData({ [field]: newValue });
+	};
 
-		if (newValue === oldValue) return;
-
+	const handleUpdateTech = async (newValue: string, index: number) => {
 		const newTechs = [...(project?.technologies ?? [])];
-		newTechs[i] = newValue;
-
-		const newData = { technologies: newTechs };
-		try {
-			validate(UpdateProjectSchema, newData);
-
-			const formData = new FormData();
-			formData.append("data", JSON.stringify(newData));
-
-			const { data } = await axiosFetch({
-				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
-				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
-			});
-
-			console.log("Update success:", data);
-
-			if (target) {
-				target.dataset.oldValue = newValue;
-			}
-
-			refetch();
-		} catch (err) {
-			console.error(err);
-			if (target) {
-				target.textContent = oldValue || "";
-			}
-		}
+		newTechs[index] = newValue;
+		await updateProjectData({ technologies: newTechs });
 	};
 
 	const handleAddTech = async () => {
-		const newTechs = [...(project?.technologies ?? []), "New Technology"];
-
-		const newData = { technologies: newTechs };
-		try {
-			validate(UpdateProjectSchema, newData);
-
-			const formData = new FormData();
-			formData.append("data", JSON.stringify(newData));
-
-			const { data } = await axiosFetch({
-				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
-				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
-			});
-
-			console.log("Update success:", data);
-
-			refetch();
-		} catch (err) {
-			console.error(err);
-		}
+		const newTechs = [...(project?.technologies ?? []), "New Tech"];
+		await updateProjectData({ technologies: newTechs });
 	};
 
 	const handleDeleteTech = async (i: number) => {
 		const newTechs = [...(project?.technologies ?? [])];
 		newTechs.splice(i, 1);
-
-		const newData = { technologies: newTechs };
-		try {
-			validate(UpdateProjectSchema, newData);
-
-			const formData = new FormData();
-			formData.append("data", JSON.stringify(newData));
-
-			const { data } = await axiosFetch({
-				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
-				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
-			});
-
-			console.log("Update success:", data);
-
-			refetch();
-		} catch (err) {
-			console.error(err);
-		}
+		await updateProjectData({ technologies: newTechs });
 	};
 
 	const handleUpdateThumbnail = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files[0]) {
 			const formData = new FormData();
 			formData.append("thumbnail", e.target.files[0]);
-
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
+				headers: { "Content-Type": "multipart/form-data" }
 			});
-
 			if (error) {
 				console.error("Error updating thumbnail", error);
-			}
-
-			if (data) {
+			} else {
 				console.log("Thumbnail updated successfully", data);
+				refetch();
 			}
-
-			refetch();
 		}
 	};
 
@@ -188,25 +87,18 @@ export default function ProjectDetailPage() {
 			for (const file of e.target.files) {
 				formData.append("previews", file);
 			}
-
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
+				headers: { "Content-Type": "multipart/form-data" }
 			});
-
 			if (error) {
 				console.error("Error adding preview", error);
-			}
-
-			if (data) {
+			} else {
 				console.log("Preview added successfully", data);
+				refetch();
 			}
-
-			refetch();
 		}
 	};
 
@@ -216,82 +108,59 @@ export default function ProjectDetailPage() {
 			for (const file of e.target.files) {
 				formData.append("previews", file);
 			}
-
 			const updateDetail = { update: [previewUrl] };
 			formData.append("preview_detail", JSON.stringify(updateDetail));
-
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
+				headers: { "Content-Type": "multipart/form-data" }
 			});
-
 			if (error) {
 				console.error("Error updating preview", error);
-			}
-
-			if (data) {
+			} else {
 				console.log("Preview updated successfully", data);
+				refetch();
 			}
-
-			refetch();
 		}
 	};
 
 	const handleDeletePreview = async (previewUrl: string) => {
 		const formData = new FormData();
 		formData.append("preview_detail", JSON.stringify({ delete: [previewUrl] }));
-
 		const { data, error } = await axiosFetch({
 			method: "PATCH",
 			url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 			data: formData,
-			headers: {
-				"Content-Type": "multipart/form-data"
-			}
+			headers: { "Content-Type": "multipart/form-data" }
 		});
-
 		if (error) {
 			console.error("Error deleting preview", error);
-		}
-
-		if (data) {
+		} else {
 			console.log("Preview deleted successfully", data);
+			refetch();
 		}
-
-		refetch();
 	};
 
 	const handleDropPreview = async (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
-
 		if (e.dataTransfer.files) {
 			const formData = new FormData();
 			for (const file of e.dataTransfer.files) {
 				formData.append("previews", file);
 			}
-
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
-				headers: {
-					"Content-Type": "multipart/form-data"
-				}
+				headers: { "Content-Type": "multipart/form-data" }
 			});
-
 			if (error) {
 				console.error("Error adding preview (drop)", error);
-			}
-
-			if (data) {
+			} else {
 				console.log("Preview added successfully (drop)", data);
+				refetch();
 			}
-
-			refetch();
 		}
 	};
 
@@ -303,7 +172,7 @@ export default function ProjectDetailPage() {
 			</Link>
 
 			<p className="absolute top-4 left-28 mb-6 text-xs tracking-wide flex gap-1 items-center">
-				Content with <Pencil2Icon className="size-3" /> icon is editable
+				Content with Pencil icon is editable
 			</p>
 
 			{/* Main Content */}
@@ -313,80 +182,47 @@ export default function ProjectDetailPage() {
 						{/* Created At */}
 						<div>
 							<p className="text-xs text-neutral-500">Created</p>
-
 							<p className="text-sm tracking-wide">{timestampToReadable(project?.created_at as string)}</p>
 						</div>
 
 						{/* Title */}
 						<div className="mt-6">
 							<p className="text-xs text-neutral-500">Title</p>
-
-							<h1
-								contentEditable
-								suppressContentEditableWarning
-								spellCheck={false}
-								onFocus={handleFocus}
-								onBlur={(e) => handleUpdate(e, "title")}
-								title={project?.id}
-								className="relative w-fit font-semibold leading-none text-4xl cursor-pointer"
-							>
-								{project?.title}
-
-								<Pencil2Icon className="absolute top-1 -left-5 size-3 text-neutral-400" />
+							<h1>
+								<EditableText
+									value={project?.title || ""}
+									onUpdate={(newVal) => handleUpdateField(newVal, "title")}
+									className="w-fit font-semibold leading-none text-4xl"
+								/>
 							</h1>
 						</div>
 
 						{/* Tagline */}
 						<div className="mt-4">
 							<p className="text-xs text-neutral-500">Tagline</p>
-
-							<p
-								contentEditable
-								suppressContentEditableWarning
-								spellCheck={false}
-								onFocus={handleFocus}
-								onBlur={(e) => handleUpdate(e, "tagline")}
-								title={project?.id}
-								className="relative w-fit text-base tracking-wide cursor-pointer"
-							>
-								{project?.tagline}
-
-								<Pencil2Icon className="absolute top-1 -left-5 size-3 text-neutral-400" />
+							<p>
+								<EditableText
+									value={project?.tagline || ""}
+									onUpdate={(newVal) => handleUpdateField(newVal, "tagline")}
+									className="text-base tracking-wide"
+								/>
 							</p>
 						</div>
 
 						{/* Technologies */}
 						<div className="mt-6">
 							<p className="mb-1 text-xs text-neutral-500">Technologies</p>
-
 							<div className="flex flex-wrap items-center gap-2 text-xs tracking-wider">
 								{project?.technologies.map((tech, i) => (
-									<div key={i} className="px-2 py-1 rounded-lg border border-neutral-400 flex items-center gap-2">
-										<p
-											contentEditable
-											suppressContentEditableWarning
-											spellCheck={false}
-											onFocus={handleFocus}
-											onBlur={(e) => handleUpdateTech(e, i)}
-											className="relative ms-4 cursor-pointer"
-										>
-											{tech}
-
-											<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
-										</p>
-
-										{project?.technologies.length > 1 && (
-											<button
-												type="button"
-												onClick={() => handleDeleteTech(i)}
-												className="p-0.5 rounded-full text-red-400 cursor-pointer hover:bg-red-200 hover:text-red-500"
-											>
-												<Cross2Icon className="size-3" />
-											</button>
-										)}
-									</div>
+									<TechTags
+										key={i}
+										value={tech}
+										index={i}
+										handleUpdateTech={handleUpdateTech}
+										handleDeleteTech={handleDeleteTech}
+										length={project?.technologies.length || 0}
+									/>
 								))}
-
 								<button
 									type="button"
 									onClick={handleAddTech}
@@ -400,101 +236,39 @@ export default function ProjectDetailPage() {
 						{/* Description */}
 						<div className="mt-8">
 							<p className="text-xs text-neutral-500">Description</p>
-
-							<p
-								contentEditable
-								suppressContentEditableWarning
-								spellCheck={false}
-								onFocus={handleFocus}
-								onBlur={(e) => handleUpdate(e, "description")}
-								className="relative text-neutral-700 max-w-3xl text-sm tracking-wide cursor-pointer"
-							>
-								{project?.description}
-
-								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
+							<p>
+								<EditableText
+									value={project?.description || ""}
+									onUpdate={(newVal) => handleUpdateField(newVal, "description")}
+									className="text-neutral-700 max-w-3xl text-sm tracking-wide"
+								/>
 							</p>
 						</div>
 
-						{/* Site Url */}
-						<div className="mt-8 flex flex-wrap gap-x-2 items-end">
-							<p className="w-full text-xs text-neutral-500">Live Site</p>
-
-							<p
-								contentEditable
-								suppressContentEditableWarning
-								spellCheck={false}
-								onFocus={handleFocus}
-								onBlur={(e) => handleUpdate(e, "site_url")}
-								className={`cursor-pointer relative ${project?.site_url ? "text-sm" : "text-xs text-neutral-400"}`}
-							>
-								{project?.site_url || "Add Site Url"}
-
-								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
-							</p>
-
-							{project?.site_url && (
-								<a href={project?.site_url || ""} target="_blank">
-									<ExternalLinkIcon className="size-4 text-blue-500" />
-								</a>
-							)}
-						</div>
-
-						{/* Source Code Url */}
-						<div className="mt-4 flex flex-wrap gap-x-2 items-end">
-							<p className="w-full text-xs text-neutral-500">Source Code</p>
-
-							<p
-								contentEditable
-								suppressContentEditableWarning
-								spellCheck={false}
-								onFocus={handleFocus}
-								onBlur={(e) => handleUpdate(e, "source_code_url")}
-								className={`cursor-pointer relative ${
-									project?.source_code_url ? "text-sm" : "text-xs text-neutral-400"
-								}`}
-							>
-								{project?.source_code_url || "Add Source Code Url"}
-
-								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
-							</p>
-
-							{project?.source_code_url && (
-								<a href={project?.source_code_url || ""} target="_blank">
-									<ExternalLinkIcon className="size-4 text-blue-500" />
-								</a>
-							)}
-						</div>
-
-						{/* Demo Url */}
-						<div className="mt-4 flex flex-wrap gap-x-2 items-end">
-							<p className="w-full text-xs text-neutral-500">Demo Video</p>
-
-							<p
-								contentEditable
-								suppressContentEditableWarning
-								spellCheck={false}
-								onFocus={handleFocus}
-								onBlur={(e) => handleUpdate(e, "demo_url")}
-								className={`cursor-pointer relative ${project?.demo_url ? "text-sm" : "text-xs text-neutral-400"}`}
-							>
-								{project?.demo_url || "Add Demo Url"}
-
-								<Pencil2Icon className="absolute top-0 -left-5 size-3 text-neutral-400" />
-							</p>
-
-							{project?.demo_url && (
-								<a href={project?.demo_url || ""} target="_blank">
-									<ExternalLinkIcon className="size-4 text-blue-500" />
-								</a>
-							)}
+						{/* Links / Urls */}
+						<div className="mt-8 flex flex-col gap-3">
+							<LinkUrl
+								url={project?.site_url || ""}
+								label="Site URL"
+								onUpdate={(newVal: string) => handleUpdateField(newVal, "site_url")}
+							/>
+							<LinkUrl
+								url={project?.source_code_url || ""}
+								label="Source Code URL"
+								onUpdate={(newVal: string) => handleUpdateField(newVal, "source_code_url")}
+							/>
+							<LinkUrl
+								url={project?.demo_url || ""}
+								label="Demo URL"
+								onUpdate={(newVal: string) => handleUpdateField(newVal, "demo_url")}
+							/>
 						</div>
 					</div>
 
 					<div className="flex flex-col">
-						{/* Thumbnail Image */}
+						{/* Thumbnail */}
 						<div>
 							<p className="text-xs text-neutral-500">Thumbnail</p>
-
 							<div className="overflow-clip relative w-full aspect-video rounded-sm border border-neutral-400 flex items-center justify-center group">
 								<Image
 									src={project?.image_thumbnail_url || ""}
@@ -504,11 +278,9 @@ export default function ProjectDetailPage() {
 									unoptimized
 									className="size-full aspect-video object-cover rounded-xs"
 								/>
-
 								<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-sm cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
 									Click to change Thumbnail
 								</p>
-
 								<input
 									type="file"
 									onChange={handleUpdateThumbnail}
@@ -518,10 +290,9 @@ export default function ProjectDetailPage() {
 							</div>
 						</div>
 
-						{/* Preview Container and Add Button / Drag and Drop */}
+						{/* Previews */}
 						<div className="mt-6">
 							<p className="text-xs text-neutral-500">Previews</p>
-
 							<div
 								onDragOver={(e) => e.preventDefault()}
 								onDrop={handleDropPreview}
@@ -531,7 +302,6 @@ export default function ProjectDetailPage() {
 									<p className="text-center text-sm text-neutral-400">
 										Click or Drag n Drop here to add Preview Images
 									</p>
-
 									<input
 										type="file"
 										accept="image/*"
@@ -540,8 +310,6 @@ export default function ProjectDetailPage() {
 										className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
 									/>
 								</div>
-
-								{/* Preview Images */}
 								{project?.image_preview_urls.map((preview, i) => (
 									<div
 										key={i}
@@ -555,18 +323,15 @@ export default function ProjectDetailPage() {
 											unoptimized
 											className="aspect-video object-cover"
 										/>
-
 										<p className="absolute px-2 py-0.5 bg-neutral-100/75 text-xs cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
 											Click to change This Preview
 										</p>
-
 										<input
 											type="file"
 											accept="image/*"
 											onChange={(e) => handleUpdatePreview(e, preview)}
 											className="absolute top-0 left-0 size-full opacity-0 cursor-pointer"
 										/>
-
 										<button
 											type="button"
 											onClick={() => handleDeletePreview(preview)}
@@ -582,5 +347,62 @@ export default function ProjectDetailPage() {
 				</div>
 			)}
 		</main>
+	);
+}
+
+/**
+ * SUB COMPONENT
+ */
+
+function TechTags({
+	value,
+	index,
+	handleUpdateTech,
+	handleDeleteTech,
+	length
+}: {
+	value: string;
+	index: number;
+	handleUpdateTech: (newVal: string, i: number) => void;
+	handleDeleteTech: (i: number) => void;
+	length: number;
+}) {
+	return (
+		<div className="px-2 py-1 ps-6 rounded-lg border border-neutral-400 flex items-center gap-2">
+			<p>
+				<EditableText value={value} onUpdate={async (newVal) => handleUpdateTech(newVal, index)} />
+			</p>
+
+			{length > 1 && (
+				<button
+					type="button"
+					onClick={() => handleDeleteTech(index)}
+					className="p-0.5 rounded-full text-red-400 cursor-pointer hover:bg-red-200 hover:text-red-500"
+				>
+					<Cross2Icon className="size-3" />
+				</button>
+			)}
+		</div>
+	);
+}
+
+function LinkUrl({ url, label, onUpdate }: { url: string; label: string; onUpdate: (newVal: string) => void }) {
+	return (
+		<div className="flex flex-wrap gap-x-3 items-center">
+			<p className="w-full text-xs text-neutral-500">{label}</p>
+			<p>
+				<EditableText
+					value={url}
+					onUpdate={async (newVal) => onUpdate(newVal)}
+					className={`${url ? "text-sm" : "text-sm text-neutral-400"}`}
+					placeholder="https://example.com"
+				/>
+			</p>
+			{url && (
+				<a href={url} target="_blank">
+					<ExternalLinkIcon className="size-4 text-blue-500" />
+				</a>
+			)}
+		</div>
 	);
 }
