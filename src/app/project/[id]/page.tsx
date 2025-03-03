@@ -10,8 +10,11 @@ import { timestampToReadable } from "@/utils/helper";
 import { UpdateProjectSchema } from "@/validations/ProjectSchema";
 import { validate } from "@/validations/validate";
 import { DoubleArrowLeftIcon, Cross2Icon, PlusIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
+import { useHotToast } from "@/contexts/HotToastContext";
 
+// TODO: ADD SEE FULL IMAGE WHEN IMAGE ON CLICK, FIX THUMBNAIL LOGIC (CLICK = SHOW FULL IMAGE, EDIT/CHANGE BUTTON, DRAG N DROP TO EDIT/CHANGE)
 export default function ProjectDetailPage() {
+	const { toast } = useHotToast();
 	const { id } = useParams();
 	const { data, refetch } = useFetch<Project>({
 		method: "GET",
@@ -19,32 +22,36 @@ export default function ProjectDetailPage() {
 	});
 	const project = data?.data;
 
+	// Data Handlers
 	const updateProjectData = async (newData: object) => {
 		try {
 			validate(UpdateProjectSchema, newData);
-
-			const formData = new FormData();
-			formData.append("data", JSON.stringify(newData));
-
-			const response = await axiosFetch({
-				method: "PATCH",
-				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
-				data: formData,
-				headers: { "Content-Type": "multipart/form-data" }
-			});
-
-			console.log("Update success:", response.data);
-			refetch();
 		} catch (err) {
-			console.error("Update error: ", err);
-			throw new Error("Failed updating project");
+			toast.error("Failed: " + (err as Error).message);
+			throw err;
+		}
+
+		const formData = new FormData();
+		formData.append("data", JSON.stringify(newData));
+
+		const { data, error } = await axiosFetch({
+			method: "PATCH",
+			url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
+			data: formData,
+			headers: { "Content-Type": "multipart/form-data" }
+		});
+
+		if (error) toast.error(error.message);
+
+		if (data) {
+			toast.success(data.message);
+			refetch();
 		}
 	};
 
-	const handleUpdateField = async (newValue: string, field: string) => {
-		await updateProjectData({ [field]: newValue });
-	};
+	const handleUpdateField = async (newValue: string, field: string) => await updateProjectData({ [field]: newValue });
 
+	// Tech Handlers
 	const handleUpdateTech = async (newValue: string, index: number) => {
 		const newTechs = [...(project?.technologies ?? [])];
 		newTechs[index] = newValue;
@@ -62,41 +69,47 @@ export default function ProjectDetailPage() {
 		await updateProjectData({ technologies: newTechs });
 	};
 
+	// Thumbnail Handlers
 	const handleUpdateThumbnail = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files[0]) {
 			const formData = new FormData();
 			formData.append("thumbnail", e.target.files[0]);
+
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: { "Content-Type": "multipart/form-data" }
 			});
-			if (error) {
-				console.error("Error updating thumbnail", error);
-			} else {
-				console.log("Thumbnail updated successfully", data);
+
+			if (error) toast.error(error.message);
+
+			if (data) {
+				toast.success(data.message);
 				refetch();
 			}
 		}
 	};
 
+	// Preview Handlers
 	const handleAddPreview = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files) {
 			const formData = new FormData();
 			for (const file of e.target.files) {
 				formData.append("previews", file);
 			}
+
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: { "Content-Type": "multipart/form-data" }
 			});
-			if (error) {
-				console.error("Error adding preview", error);
-			} else {
-				console.log("Preview added successfully", data);
+
+			if (error) toast.error(error.message);
+
+			if (data) {
+				toast.success(data.message);
 				refetch();
 			}
 		}
@@ -108,6 +121,7 @@ export default function ProjectDetailPage() {
 			for (const file of e.target.files) {
 				formData.append("previews", file);
 			}
+
 			const updateDetail = { update: [previewUrl] };
 			formData.append("preview_detail", JSON.stringify(updateDetail));
 			const { data, error } = await axiosFetch({
@@ -116,10 +130,11 @@ export default function ProjectDetailPage() {
 				data: formData,
 				headers: { "Content-Type": "multipart/form-data" }
 			});
-			if (error) {
-				console.error("Error updating preview", error);
-			} else {
-				console.log("Preview updated successfully", data);
+
+			if (error) toast.error(error.message);
+
+			if (data) {
+				toast.success(data.message);
 				refetch();
 			}
 		}
@@ -128,37 +143,42 @@ export default function ProjectDetailPage() {
 	const handleDeletePreview = async (previewUrl: string) => {
 		const formData = new FormData();
 		formData.append("preview_detail", JSON.stringify({ delete: [previewUrl] }));
+
 		const { data, error } = await axiosFetch({
 			method: "PATCH",
 			url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 			data: formData,
 			headers: { "Content-Type": "multipart/form-data" }
 		});
-		if (error) {
-			console.error("Error deleting preview", error);
-		} else {
-			console.log("Preview deleted successfully", data);
+
+		if (error) toast.error(error.message);
+
+		if (data) {
+			toast.success(data.message);
 			refetch();
 		}
 	};
 
 	const handleDropPreview = async (e: React.DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
+
 		if (e.dataTransfer.files) {
 			const formData = new FormData();
 			for (const file of e.dataTransfer.files) {
 				formData.append("previews", file);
 			}
+
 			const { data, error } = await axiosFetch({
 				method: "PATCH",
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${id}`,
 				data: formData,
 				headers: { "Content-Type": "multipart/form-data" }
 			});
-			if (error) {
-				console.error("Error adding preview (drop)", error);
-			} else {
-				console.log("Preview added successfully (drop)", data);
+
+			if (error) toast.error(error.message);
+
+			if (data) {
+				toast.success(data.message);
 				refetch();
 			}
 		}

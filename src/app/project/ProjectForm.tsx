@@ -13,6 +13,7 @@ import { validate } from "@/validations/formikValidate";
 import { CreateProjectSchema } from "@/validations/ProjectSchema";
 import { filterEmptyArrayIndex, filterEmptyObjectFields } from "@/utils/helper";
 import { ChevronUpIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import { useHotToast } from "@/contexts/HotToastContext";
 
 type ProjectPayload = Omit<Project, "id" | "created_at" | "image_thumbnail_url" | "image_preview_urls"> & {
 	image_thumbnail: File | null;
@@ -31,6 +32,7 @@ const FORM_INIT: ProjectPayload = {
 };
 
 export default function ProjectForm({ refetch }: { refetch: () => void }) {
+	const { toast } = useHotToast();
 	const formRef = useRef<HTMLFormElement>(null);
 	const [expandedForm, setExpandedForm] = useState(false);
 
@@ -70,11 +72,10 @@ export default function ProjectForm({ refetch }: { refetch: () => void }) {
 			data: formData
 		});
 
-		if (error) {
-			console.error(error);
-		}
+		if (error) toast.error(error.message);
 
 		if (data) {
+			toast.success(data.message);
 			refetch();
 			resetForm();
 		}

@@ -14,9 +14,8 @@ export default function useFetch<T>(config: AxiosRequestConfig) {
 	const refetch = () => setRefetcher(!refetcher);
 
 	useEffect(() => {
-		console.log("__useFetch__ useEffect Running...");
-
 		const fetchData = async () => {
+			console.log("__useFetch__ useFetch Running...");
 			setLoading(true);
 
 			try {
@@ -44,13 +43,9 @@ export async function axiosFetch<T>(config: AxiosRequestConfig) {
 
 	try {
 		console.log("__useFetch__ axiosFetch Running...");
-
 		const res = await axios(config);
-
 		result.data = res.data;
 	} catch (err) {
-		console.log(err);
-
 		result.error = (err as AxiosError).response?.data as ErrorResponse;
 	}
 	return result;

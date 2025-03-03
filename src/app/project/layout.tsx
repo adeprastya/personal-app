@@ -1,9 +1,8 @@
-import "@/styles/globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
 	title: "Personal App | Project",
-	description: "Ade Prastya's Personal App"
+	description: "Ade Prastya's Personal App / Project"
 };
 
 export default function ProjectLayout({
@@ -11,9 +10,5 @@ export default function ProjectLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en">
-			<body>{children}</body>
-		</html>
-	);
+	return children;
 }

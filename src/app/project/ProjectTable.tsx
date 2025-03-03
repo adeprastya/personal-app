@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { axiosFetch } from "@/hooks/useFetch";
 import { TrashIcon } from "@radix-ui/react-icons";
+import { useHotToast } from "@/contexts/HotToastContext";
 
 export default function ProjectTable({
 	projects,
@@ -51,6 +52,8 @@ export default function ProjectTable({
 }
 
 function ProjectRow({ project, refetch }: { project: MinimalProject; refetch: () => void }) {
+	const { toast } = useHotToast();
+
 	const handleDelete = async () => {
 		if (confirm("Are you sure you want to delete this project?")) {
 			const { data, error } = await axiosFetch({
@@ -58,12 +61,10 @@ function ProjectRow({ project, refetch }: { project: MinimalProject; refetch: ()
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/project/${project.id}`
 			});
 
-			if (error) {
-				console.error(error);
-				return;
-			}
+			if (error) toast.error(error.message);
 
 			if (data) {
+				toast.success(data.message);
 				refetch();
 			}
 		}

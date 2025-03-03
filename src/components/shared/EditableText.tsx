@@ -24,8 +24,8 @@ export const EditableText: React.FC<EditableTextProps> = ({ value, onUpdate, cla
 		if (newValue !== oldValue) {
 			try {
 				await onUpdate(newValue);
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			} catch (err) {
-				console.error(err);
 				if (editableRef.current) {
 					editableRef.current.textContent = oldValue;
 				}
@@ -39,6 +39,7 @@ export const EditableText: React.FC<EditableTextProps> = ({ value, onUpdate, cla
 
 			<span
 				ref={editableRef}
+				key={`${String(Symbol(value))}`}
 				contentEditable
 				suppressContentEditableWarning
 				spellCheck={false}
