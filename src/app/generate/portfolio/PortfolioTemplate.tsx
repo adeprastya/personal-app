@@ -122,6 +122,61 @@ export default function PortfolioTemplate({ projects }: PortfolioTemplateProps) 
 					))}
 				</div>
 			</main>
+
+			<PrintHelper />
 		</div>
+	);
+}
+
+import { useState } from "react";
+import { Cross2Icon, CaretRightIcon, CaretLeftIcon } from "@radix-ui/react-icons";
+function PrintHelper() {
+	const [isShowing, setIsShowing] = useState(false);
+
+	return (
+		<>
+			<div
+				className={`print:hidden fixed top-0 right-0 p-6 rounded-bl-sm shadow-md bg-neutral-800 text-neutral-100 transition-transform ${
+					isShowing ? "translate-x-0" : "translate-x-full"
+				}`}
+			>
+				<h2 className="text-lg mb-2">Print Settings</h2>
+				<div className="font-semibold tracking-wider text-sm">
+					<span className="font-normal text-xs text-neutral-300">Destination</span>
+					<p>Save as PDF</p>
+					<span className="font-normal text-xs text-neutral-300">Pages</span>
+					<p>All</p>
+					<span className="font-normal text-xs text-neutral-300">Layout</span>
+					<p>Landscape</p>
+					<span className="font-normal text-xs text-neutral-300">Paper size</span>
+					<p>A3</p>
+					<span className="font-normal text-xs text-neutral-300">Pages per sheet</span>
+					<p>1</p>
+					<span className="font-normal text-xs text-neutral-300">Margins</span>
+					<p>Default</p>
+					<span className="font-normal text-xs text-neutral-300">Scale</span>
+					<p>Default</p>
+					<span className="font-normal text-xs text-neutral-300">Options</span>
+					<p></p>
+					<ul className="list-disc pl-4 text-xs">
+						<li>
+							Headers and footers (<Cross2Icon className="inline" />)
+						</li>
+						<li>
+							Background graphics (<Cross2Icon className="inline" />)
+						</li>
+					</ul>
+				</div>
+				<button type="button" onClick={() => window.print()} className="btn-primary mt-4 w-full invert">
+					PRINT
+				</button>
+			</div>
+			<button
+				onClick={() => setIsShowing(!isShowing)}
+				className="fixed top-0 right-0 p-2 rounded-s-sm bg-neutral-800 text-neutral-100"
+			>
+				{isShowing ? <CaretRightIcon className="size-5" /> : <CaretLeftIcon className="size-5" />}
+			</button>
+		</>
 	);
 }
