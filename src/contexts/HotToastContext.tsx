@@ -31,14 +31,32 @@ const toastOptions: ToastOptions = {
 	removeDelay: 1500
 };
 
+export type HotToast = {
+	(message: NonNullable<ReactNode>, options?: ToastOptions): string;
+	loading(message: NonNullable<ReactNode>, options?: ToastOptions): string;
+	success(message: NonNullable<ReactNode>, options?: ToastOptions): string;
+	error(message: NonNullable<ReactNode>, options?: ToastOptions): string;
+	dismiss(id?: string): void;
+	remove(id: string): void;
+	promise<T>(
+		promise: Promise<T> | (() => Promise<T>),
+		messages: {
+			loading: NonNullable<ReactNode>;
+			success: NonNullable<ReactNode>;
+			error: NonNullable<ReactNode>;
+		},
+		options?: ToastOptions
+	): Promise<T>;
+};
+
 interface HotToastContextType {
-	toast: typeof toast;
+	toast: HotToast;
 }
 const HotToastContext = createContext<HotToastContextType | undefined>(undefined);
 
 export default function HotToastProvider({ children }: { children: ReactNode }) {
 	return (
-		<HotToastContext.Provider value={{ toast }}>
+		<HotToastContext.Provider value={{ toast } as HotToastContextType}>
 			{children}
 			<Toaster toastOptions={toastOptions} />
 		</HotToastContext.Provider>

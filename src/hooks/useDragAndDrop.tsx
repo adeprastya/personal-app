@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 interface UseDragAndDropOptions {
-	onDropFiles: (files: FileList) => void;
+	onDropFiles?: (files: FileList) => void;
 }
 
 export function useDragAndDrop<T extends HTMLElement = HTMLElement>({ onDropFiles }: UseDragAndDropOptions) {
@@ -13,10 +13,7 @@ export function useDragAndDrop<T extends HTMLElement = HTMLElement>({ onDropFile
 		setDragActive(false);
 	};
 
-	const handleDragOver = (e: React.DragEvent<T>) => {
-		stopEvent(e);
-		setDragActive(true);
-	};
+	const handleDragOver = (e: React.DragEvent<T>) => stopEvent(e);
 
 	const handleDragEnter = (e: React.DragEvent<T>) => {
 		stopEvent(e);
@@ -30,17 +27,17 @@ export function useDragAndDrop<T extends HTMLElement = HTMLElement>({ onDropFile
 
 	const handleDrop = (e: React.DragEvent<T>) => {
 		stopEvent(e);
-		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) onDropFiles(e.dataTransfer.files);
+		if (onDropFiles && e.dataTransfer.files && e.dataTransfer.files.length > 0) onDropFiles(e.dataTransfer.files);
 		setDragActive(false);
 	};
 
 	return {
 		dragActive,
 		dragHandler: {
-			dragOver: handleDragOver,
-			dragEnter: handleDragEnter,
-			dragLeave: handleDragLeave,
-			drop: handleDrop
+			onDragEnter: handleDragEnter,
+			onDragLeave: handleDragLeave,
+			onDragOver: handleDragOver,
+			onDrop: handleDrop
 		}
 	};
 }

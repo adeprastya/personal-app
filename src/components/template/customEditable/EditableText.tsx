@@ -45,9 +45,9 @@ export const EditableText: React.FC<EditableTextProps> = ({ value, onUpdate, cla
 				spellCheck={false}
 				onFocus={handleFocus}
 				onBlur={handleBlur}
-				className={`block cursor-pointer outline-0
-        hover:underline hover:underline-offset-4
-        focus:underline focus:underline-offset-4 focus:bg-black/5 focus:text-neutral-800
+				className={`relative block cursor-pointer outline-0
+        hover:bg-black/4
+        focus:after:content-[''] focus:after:absolute focus:after:-bottom-0.5 focus:after:left-0 focus:after:w-full focus:after:h-[1px] focus:after:bg-neutral-600 focus:bg-black/8 focus:text-neutral-800
         ${className}`}
 			>
 				{value || placeholder}

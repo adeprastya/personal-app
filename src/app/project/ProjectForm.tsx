@@ -1,11 +1,11 @@
 "use client";
 
 import type { Project } from "@/types/Project";
-import InputField from "@/components/shared/InputField";
-import TextareaField from "@/components/shared/TextareaField";
-import ImageInputField from "@/components/shared/ImageInputField";
-import ArrayTextField from "@/components/shared/ArrayTextField";
-import ArrayImageField from "@/components/shared/ArrayImageField";
+import InputField from "@/components/template/customInput/InputField";
+import TextareaField from "@/components/template/customInput/TextareaField";
+import ImageInputField from "@/components/template/customInput/ImageInputField";
+import ArrayTextField from "@/components/template/customInput/ArrayTextField";
+import ArrayImageField from "@/components/template/customInput/ArrayImageField";
 import { axiosFetch } from "@/hooks/useFetch";
 import { useState, useRef } from "react";
 import { Formik, Form } from "formik";

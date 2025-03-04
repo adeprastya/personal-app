@@ -72,10 +72,7 @@ export default function ArrayImageField({ name, label, ...props }: FormikFieldPr
 
 			{/* Dropzone */}
 			<label
-				onDragOver={dragHandler.dragOver}
-				onDragEnter={dragHandler.dragEnter}
-				onDragLeave={dragHandler.dragLeave}
-				onDrop={dragHandler.drop}
+				{...dragHandler}
 				onClick={(e) => {
 					if (e.target !== e.currentTarget) e.stopPropagation();
 				}}
