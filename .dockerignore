@@ -43,7 +43,7 @@ yarn-error.log*
 *.env*
 *.secret*
 *.local*
-!*.build
+!*.build*
 
 /.vscode
 /_docs
